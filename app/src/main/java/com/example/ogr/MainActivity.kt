@@ -3,17 +3,19 @@ package com.example.ogr
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.view.View
-import kotlinx.android.synthetic.main.activity_main.*
 import android.util.Log
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
-import java.util.*
+import java.io.OutputStream
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,28 +42,7 @@ class MainActivity : AppCompatActivity() {
     fun takePhoto(view: View){
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             takePictureIntent.resolveActivity(packageManager)?.also {
-
-                val photoFile: File? = try {
-                    createImageFile()
-                } catch (ex: IOException) {
-                    // Error occurred while creating the File
-                    Log.d("ERROR FILE CREATE", "exception with image creating")
-                    null
-                }
-
-                photoFile?.also {
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "com.example.org.fileprovider",
-                        it
-                    )
-                    print(photoURI)
-                    Log.d("PHOTO URI", photoURI.toString())
-
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
-                    //takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI) fix this line
-
-                }
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
             }
         }
     }
@@ -87,11 +68,37 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
+            val pthFile = saveImage(imageBitmap)
+            Log.d("FILE", pthFile.toString() + " is saved")
 
             /*if (imageBitmap != null){
                 this.iamgeBitmap = imageBitmap
                 imageView.setImageBitmap(imageBitmap)
             }*/
         }
+    }
+
+
+    private fun saveImage(image: Bitmap): String? {
+
+        val photoFile: File? = try {
+            createImageFile()
+        } catch (ex: IOException) {
+            // Error occurred while creating the File
+            Log.d("ERROR FILE CREATE", "exception with image creating")
+            null
+        }
+
+        if (photoFile != null) {
+            try {
+                val fOut: OutputStream = FileOutputStream(photoFile)
+                image.compress(Bitmap.CompressFormat.JPEG, 100, fOut)
+                fOut.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+        }
+        return photoFile?.absolutePath
     }
 }
