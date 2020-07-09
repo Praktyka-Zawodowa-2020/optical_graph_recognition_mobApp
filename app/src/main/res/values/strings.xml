@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">OGR</string>
+    <string name="take_photo">camera</string>
+    <string name="gallery">gallery</string>
+    <string name="settings">settings</string>
+    <string name="process">PROCESS</string>
+    <string name="graph_image">Graph image</string>
+    <string name="edit_photo">edit</string>
+</resources>
