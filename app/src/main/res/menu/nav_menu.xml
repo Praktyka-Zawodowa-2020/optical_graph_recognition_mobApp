@@ -3,25 +3,25 @@
 
     <group>
         <item
-            android:id="@+id/nav_profile"
-            android:title="Profile"/>
+            android:id="@+id/nav_main"
+            android:title="Main"/>
         <item
-            android:id="@+id/nav_messages"
-            android:title="Messages"/>
+            android:id="@+id/nav_history"
+            android:title="History"/>
         <item
-            android:id="@+id/nav_friends"
-            android:title="Friends"/>
+            android:id="@+id/nav_graph"
+            android:title="Graph"/>
+        <item
+            android:id="@+id/nav_public"
+            android:title="Public"/>
     </group>
 
 
-    <item android:title="Account Settings">
+    <item android:title="Settings">
         <menu>
             <item
-                android:id="@+id/nav_update"
-                android:title="Update Profile"/>
-            <item
-                android:id="@+id/nav_logout"
-                android:title="Sign Out"/>
+                android:id="@+id/nav_settings"
+                android:title="Settings"/>
         </menu>
     </item>
 </menu>

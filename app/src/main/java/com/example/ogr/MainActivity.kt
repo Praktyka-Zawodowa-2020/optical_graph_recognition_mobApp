@@ -36,15 +36,6 @@ class MainActivity : AppCompatActivity() {
         //setSupportActionBar(toolbar)
     }
 
-    fun editPhoto(view: View){
-        if (uriPicture != null){
-            val intentEdit = Intent(this, EditActivity::class.java).apply {
-                putExtra(EXTRA_BITMAP, uriPicture)
-            }
-            startActivity(intentEdit)
-        }
-    }
-
     fun openGallery(view: View){
         Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also { pickPictureGallery->
             pickPictureGallery.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
