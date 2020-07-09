@@ -11,10 +11,6 @@ class EditActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit)
-
-        val imageBitmap: Bitmap? = intent.getParcelableExtra(EXTRA_BITMAP) as Bitmap?
-        if (imageBitmap != null)
-            imageView.setImageBitmap(imageBitmap)
     }
 
 }

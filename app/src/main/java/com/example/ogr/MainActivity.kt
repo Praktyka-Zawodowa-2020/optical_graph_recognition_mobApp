@@ -1,20 +1,19 @@
 package com.example.ogr
 
-import android.R.attr
+//import android.R
+import com.example.ogr.R as R
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
-import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.IOException
-import java.net.URI
 
 
 class MainActivity : AppCompatActivity() {
@@ -27,9 +26,14 @@ class MainActivity : AppCompatActivity() {
     lateinit var currentPhotoPath: String
     lateinit var uriPicture: Uri
 
+    lateinit var toolbar: Toolbar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //toolbar = findViewById(R.id.toolbar)
+        //setSupportActionBar(toolbar)
     }
 
     fun editPhoto(view: View){
@@ -89,7 +93,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+
+        val imageView: ImageView = findViewById(R.id.imageView)
+
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             val file = File(currentPhotoPath)
             val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
             imageView.setImageBitmap(imageBitmap)

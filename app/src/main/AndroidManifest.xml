@@ -28,7 +28,8 @@
                 android:value=".MainActivity" />
         </activity>
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -46,5 +47,4 @@
                 android:resource="@xml/file_paths"/>
         </provider>
     </application>
-
 </manifest>
