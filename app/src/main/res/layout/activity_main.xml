@@ -35,7 +35,7 @@
         android:id="@+id/button_gallery"
         android:layout_width="0dp"
         android:layout_height="70dp"
-        android:onClick="editPhoto"
+        android:onClick="openGallery"
         android:text="@string/gallery"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

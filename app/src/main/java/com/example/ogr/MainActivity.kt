@@ -1,5 +1,6 @@
 package com.example.ogr
 
+import android.R.attr
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -12,17 +13,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
+import java.net.URI
 
 
 class MainActivity : AppCompatActivity() {
 
-    val REQUEST_IMAGE_CAPTURE = 1
-    val REQUEST_TAKE_PHOTO = 1
+    val REQUEST_GALLERY_PHOTO = 1
+    val REQUEST_IMAGE_CAPTURE = 2
+    val REQUEST_TAKE_PHOTO = 3
     val EXTRA_BITMAP = "com.example.ogr.BITMAP"
     private var iamgeBitmap: Bitmap? = null
+    lateinit var currentPhotoPath: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,12 +32,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun editPhoto(view: View){
-
         if (iamgeBitmap != null){
             val intentEdit = Intent(this, EditActivity::class.java).apply {
                 putExtra(EXTRA_BITMAP, iamgeBitmap as Bitmap)
             }
             startActivity(intentEdit)
+        }
+    }
+
+    fun openGallery(view: View){
+        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also { pickPictureGallery->
+            pickPictureGallery.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivityForResult(pickPictureGallery, REQUEST_GALLERY_PHOTO);
         }
     }
 
@@ -64,8 +72,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    lateinit var currentPhotoPath: String
-
     @Throws(IOException::class)
     private fun createImageFile(): File {
         // Create an image file name
@@ -86,7 +92,12 @@ class MainActivity : AppCompatActivity() {
             val file = File(currentPhotoPath)
             val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
             imageView.setImageBitmap(imageBitmap)
+        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == RESULT_OK){
+            val imageURI: Uri? = data?.data as Uri
+            if (imageURI != null) {
+                val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageURI)
+                imageView.setImageBitmap(imageBitmap)
+            }
         }
     }
-
 }
