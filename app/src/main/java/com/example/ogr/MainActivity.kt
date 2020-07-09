@@ -1,7 +1,5 @@
 package com.example.ogr
 
-//import android.R
-import com.example.ogr.R as R
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -35,6 +33,11 @@ class MainActivity : AppCompatActivity() {
         //toolbar = findViewById(R.id.toolbar)
         //setSupportActionBar(toolbar)
     }
+
+    fun goGraphActivity(view: View){
+
+    }
+
 
     fun openGallery(view: View){
         Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also { pickPictureGallery->
