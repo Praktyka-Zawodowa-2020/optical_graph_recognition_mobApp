@@ -23,8 +23,9 @@ class MainActivity : AppCompatActivity() {
     val REQUEST_IMAGE_CAPTURE = 2
     val REQUEST_TAKE_PHOTO = 3
     val EXTRA_BITMAP = "com.example.ogr.BITMAP"
-    private var iamgeBitmap: Bitmap? = null
+    
     lateinit var currentPhotoPath: String
+    lateinit var uriPicture: Uri
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,9 +33,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun editPhoto(view: View){
-        if (iamgeBitmap != null){
+        if (uriPicture != null){
             val intentEdit = Intent(this, EditActivity::class.java).apply {
-                putExtra(EXTRA_BITMAP, iamgeBitmap as Bitmap)
+                putExtra(EXTRA_BITMAP, uriPicture)
             }
             startActivity(intentEdit)
         }
