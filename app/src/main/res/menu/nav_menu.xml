@@ -9,9 +9,6 @@
             android:id="@+id/nav_history"
             android:title="History"/>
         <item
-            android:id="@+id/nav_graph"
-            android:title="Graph"/>
-        <item
             android:id="@+id/nav_public"
             android:title="Public"/>
     </group>

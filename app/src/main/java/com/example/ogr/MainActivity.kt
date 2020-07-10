@@ -13,6 +13,8 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
 
+import com.example.ogr.graph.FruchtermanReingoldActivity
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,7 +37,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun goGraphActivity(view: View){
-
+        Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
+            startActivity(graphActivity)
+        }
     }
 
 

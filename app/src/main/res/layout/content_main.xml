@@ -46,6 +46,7 @@
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="0dp"
         android:layout_height="80dp"
+        android:onClick="goGraphActivity"
         android:text="@string/process"
         app:layout_constraintBottom_toTopOf="@+id/button_gallery"
         app:layout_constraintEnd_toEndOf="parent"

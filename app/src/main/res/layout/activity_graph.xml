@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".GraphActivity">
+
+    <com.otaliastudios.zoom.ZoomLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical|horizontal"
+        app:hasClickableChildren="true"
+        app:maxZoom="5.5">
+
+        <de.blox.graphview.GraphView
+            android:id="@+id/graph"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="50dp"
+            app:lineColor="@android:color/holo_blue_dark"
+            app:lineThickness="2dp" />
+    </com.otaliastudios.zoom.ZoomLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
