@@ -26,7 +26,7 @@ abstract class GraphActivity : AppCompatActivity() {
         setContentView(R.layout.activity_graph)
 
         val graph: Graph = createGraph()
-            //setupToolbar()
+        //setupToolbar()
         //setupFab(graph)
         setupAdapter(graph)
     }
@@ -81,7 +81,8 @@ abstract class GraphActivity : AppCompatActivity() {
                 data: Any,
                 position: Int
             ) {
-                (viewHolder as SimpleViewHolder).textView.text = data.toString()
+                val text:String = data.toString().split('=')[1].split(')')[0]
+                (viewHolder as SimpleViewHolder).textView.text = text
             }
 
             inner class SimpleViewHolder(itemView: View) :
