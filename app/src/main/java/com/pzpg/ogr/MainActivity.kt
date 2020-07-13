@@ -5,43 +5,73 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.Menu
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.navigation.NavigationView
+import com.pzpg.ogr.fragments.HomeFragment
 import java.io.File
 import java.io.IOException
-
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 
 
 class MainActivity : AppCompatActivity() {
 
-    val REQUEST_GALLERY_PHOTO = 1
-    val REQUEST_IMAGE_CAPTURE = 2
-    val REQUEST_TAKE_PHOTO = 3
-    val EXTRA_BITMAP = "com.pzpg.ogr.BITMAP"
-    
-    lateinit var currentPhotoPath: String
-    lateinit var uriPicture: Uri
 
-    lateinit var toolbar: Toolbar
+    val REQUEST_GALLERY_PHOTO = 1
+    val REQUEST_TAKE_PHOTO = 3
+
+    lateinit var currentPhotoPath: String
+    lateinit var imageView: ImageView
+
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //toolbar = findViewById(R.id.toolbar)
-        //setSupportActionBar(toolbar)
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+
+        val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
+        val navView: NavigationView = findViewById(R.id.nav_view)
+        val navController = findNavController(R.id.nav_host_fragment)
+        appBarConfiguration = AppBarConfiguration(setOf(
+            R.id.nav_home, R.id.nav_history, R.id.nav_public), drawerLayout)
+
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
+
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.nav_menu, menu)
+        return true
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(R.id.nav_host_fragment)
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
 
     fun goGraphActivity(view: View){
         Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
             startActivity(graphActivity)
         }
     }
-
 
     fun openGallery(view: View){
         Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also { pickPictureGallery->
@@ -92,13 +122,13 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        val imageView: ImageView = findViewById(R.id.imageView)
+        imageView = findViewById(R.id.imageView)
 
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == AppCompatActivity.RESULT_OK) {
             val file = File(currentPhotoPath)
             val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
             imageView.setImageBitmap(imageBitmap)
-        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == RESULT_OK){
+        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == AppCompatActivity.RESULT_OK){
             val imageURI: Uri? = data?.data as Uri
             if (imageURI != null) {
                 val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageURI)
