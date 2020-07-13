@@ -6,4 +6,6 @@
     <string name="process">PROCESS</string>
     <string name="graph_image">Graph image</string>
     <string name="edit_photo">edit</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

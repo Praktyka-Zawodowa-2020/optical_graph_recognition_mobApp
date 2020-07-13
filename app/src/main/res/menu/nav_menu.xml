@@ -3,7 +3,7 @@
 
     <group>
         <item
-            android:id="@+id/nav_main"
+            android:id="@+id/nav_home"
             android:title="Main"/>
         <item
             android:id="@+id/nav_history"
