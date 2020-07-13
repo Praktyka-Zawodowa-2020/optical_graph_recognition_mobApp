@@ -1,4 +1,4 @@
-package com.example.ogr
+package com.pzpg.ogr
 
 import android.os.Bundle
 import android.view.LayoutInflater

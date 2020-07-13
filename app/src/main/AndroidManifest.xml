@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.ogr">
+    package="com.pzpg.ogr">
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -21,15 +21,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="com.example.ogr.graph.FruchtermanReingoldActivity">
+        <activity android:name="com.pzpg.ogr.graph.FruchtermanReingoldActivity">
         </activity>
-        <activity android:name=".GraphActivity"
+        <activity android:name="com.pzpg.ogr.GraphActivity"
             android:theme="@style/AppTheme.NoActionBar">
 
         </activity>
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.pzpg.ogr.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,7 +40,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.org.fileprovider"
+            android:authorities="com.pzpg.org.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

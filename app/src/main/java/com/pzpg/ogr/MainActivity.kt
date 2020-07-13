@@ -1,4 +1,4 @@
-package com.example.ogr
+package com.pzpg.ogr
 
 import android.content.Intent
 import android.net.Uri
@@ -13,7 +13,7 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
 
-import com.example.ogr.graph.FruchtermanReingoldActivity
+import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 
 
 class MainActivity : AppCompatActivity() {
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     val REQUEST_GALLERY_PHOTO = 1
     val REQUEST_IMAGE_CAPTURE = 2
     val REQUEST_TAKE_PHOTO = 3
-    val EXTRA_BITMAP = "com.example.ogr.BITMAP"
+    val EXTRA_BITMAP = "com.pzpg.ogr.BITMAP"
     
     lateinit var currentPhotoPath: String
     lateinit var uriPicture: Uri
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                 photoFile?.also {
                     val photoURI: Uri = FileProvider.getUriForFile(
                         this,
-                        "com.example.org.fileprovider",
+                        "com.pzpg.org.fileprovider",
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)

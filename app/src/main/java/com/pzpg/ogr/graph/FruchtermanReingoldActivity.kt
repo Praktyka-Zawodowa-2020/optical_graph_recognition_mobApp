@@ -1,6 +1,6 @@
-package com.example.ogr.graph
+package com.pzpg.ogr.graph
 
-import com.example.ogr.GraphActivity
+import com.pzpg.ogr.GraphActivity
 import de.blox.graphview.Graph
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node

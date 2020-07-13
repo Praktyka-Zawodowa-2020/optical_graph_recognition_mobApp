@@ -7,7 +7,7 @@ android {
     buildToolsVersion "30.0.0"
 
     defaultConfig {
-        applicationId "com.example.ogr"
+        applicationId "com.pzpg.ogr"
         minSdkVersion 23
         targetSdkVersion 30
         versionCode 1

@@ -1,4 +1,4 @@
-package com.example.ogr
+package com.pzpg.ogr
 
 import org.junit.Test
 
