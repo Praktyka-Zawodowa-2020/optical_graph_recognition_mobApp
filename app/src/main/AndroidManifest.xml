@@ -25,9 +25,9 @@
 
         <activity android:name="com.pzpg.ogr.graph.FruchtermanReingoldActivity">
         </activity>
+
         <activity android:name="com.pzpg.ogr.GraphActivity"
             android:theme="@style/AppTheme.NoActionBar">
-
         </activity>
 
 
