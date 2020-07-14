@@ -1,6 +1,8 @@
 package com.pzpg.ogr
 
 import android.os.Bundle
+import android.util.Log
+import android.util.Xml
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +15,7 @@ import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node
+import java.io.*
 
 
 abstract class GraphActivity : AppCompatActivity() {
@@ -20,15 +23,34 @@ abstract class GraphActivity : AppCompatActivity() {
     private var currentNode: Node? = null
     lateinit var graphView: GraphView
     lateinit var adapter: GraphAdapter<*>
+    lateinit var currentFilePath: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_graph)
 
-        val graph: Graph = createGraph()
+        val fileName: String? = intent.getStringExtra("EXTRA_GRAPH_NAME")
+        val extension: String? = intent.getStringExtra("EXTRA_GRAPH_EXTENSION")
+        lateinit var graph: Graph
+
+        graph = if (fileName != null){
+                    when(extension){
+                        "graphml", "gml" -> readGraphGraphml(fileName)
+                        "graph6", "g6" -> readGraphSix(fileName)
+                        else->{
+                            readGraphGraphml(fileName)
+                        }
+                    }
+                } else {
+                    createGraph()
+                }
+
+        setupAdapter(graph)
+
+
         //setupToolbar()
         //setupFab(graph)
-        setupAdapter(graph)
+
     }
 
     /*private fun setupFab(graph: Graph) {
@@ -105,6 +127,108 @@ abstract class GraphActivity : AppCompatActivity() {
                     Snackbar.LENGTH_SHORT
                 ).show()
             }
+    }
+
+    @Throws(IOException::class)
+    private fun createFile(name: String, extension: String): File {
+        // Create an image file name
+        val storageDir: File? = getExternalFilesDir("graph")
+
+        return File.createTempFile(
+            "${name}_", /* prefix */
+            ".$extension", /* suffix */
+            storageDir /* directory */
+        ).apply {
+            // Save a file: path for use with ACTION_VIEW intents
+            currentFilePath = absolutePath
+        }
+    }
+
+    fun saveGraphGraphml(graph: Graph, name: String){
+
+        val xmlSerializer = Xml.newSerializer()
+        val writer = StringWriter()
+
+        xmlSerializer.setOutput(writer)
+        xmlSerializer.startDocument("UTF-8", false)
+        xmlSerializer.startTag("", "graphml")
+        xmlSerializer.attribute("", "xmlns", "http://graphml.graphdrawing.org/xmlns")
+        xmlSerializer.attribute("", "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+        xmlSerializer.attribute(
+            "", "xsi:schemaLocation", "http://graphml.graphdrawing.org/xmlns " +
+                    "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"
+        )
+
+        xmlSerializer.startTag("","key")
+        xmlSerializer.attribute("", "id", "x")
+        xmlSerializer.attribute("", "for", "node")
+        xmlSerializer.attribute("", "attr.name", "x")
+        xmlSerializer.attribute("", "attr.type", "double")
+        xmlSerializer.endTag("","key")
+
+        xmlSerializer.startTag("","key")
+        xmlSerializer.attribute("", "id", "y")
+        xmlSerializer.attribute("", "for", "node")
+        xmlSerializer.attribute("", "attr.name", "y")
+        xmlSerializer.attribute("", "attr.type", "double")
+        xmlSerializer.endTag("","key")
+
+        xmlSerializer.startTag("", "graph")
+        xmlSerializer.attribute("", "id", "G")
+        xmlSerializer.attribute("", "edgedefault", "undirected")
+
+        graph.nodes.forEach {
+            xmlSerializer.startTag("", "node")
+            xmlSerializer.attribute("", "id", "${it.data}")
+
+            xmlSerializer.startTag("", "data")
+            xmlSerializer.attribute("", "key", "x")
+            xmlSerializer.text("${it.x}")
+            xmlSerializer.endTag("", "data")
+
+            xmlSerializer.startTag("", "data")
+            xmlSerializer.attribute("", "key", "y")
+            xmlSerializer.text("${it.y}")
+            xmlSerializer.endTag("", "data")
+
+            xmlSerializer.endTag("", "node")
+        }
+
+        graph.edges.forEach {
+            xmlSerializer.startTag("", "edge")
+            xmlSerializer.attribute("", "source", "${it.source.data}")
+            xmlSerializer.attribute("", "target", "${it.destination.data}")
+            xmlSerializer.endTag("", "edge")
+        }
+
+        xmlSerializer.endTag("", "graph")
+        xmlSerializer.endTag("", "graphml")
+        xmlSerializer.endDocument()
+
+        val file: File = createFile(name, "graphml")
+        try {
+            PrintWriter(file).use { out -> out.println(writer.toString()) }
+        } catch (e: Exception) {
+
+        }
+    }
+
+    fun readGraphGraphml(name: String): Graph{
+        val parser = XmlParser()
+        val storageDir: File? = getExternalFilesDir("graph")
+        val file: File = File(storageDir, name)
+
+        val graph = parser.parse(FileInputStream(file))
+        Log.d("NODES", "${graph.nodeCount}")
+
+        return graph
+    }
+
+    fun saveGraphSix(graph: Graph){
+
+    }
+    fun readGraphSix(path: String): Graph{
+        return Graph()
     }
 
     abstract fun createGraph(): Graph
