@@ -200,6 +200,15 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
+    fun readGraphGraphml(path: String): Graph{
+        val parser = XmlParser()
+        return parser.parse(openFileInput(path))
+    }
+
+    fun saveGraphSix(graph: Graph){
+
+    }
+
     abstract fun createGraph(): Graph
     abstract fun setLayout(view: GraphView)
     protected open fun getNodeText(): String {
