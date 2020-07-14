@@ -1,6 +1,7 @@
 package com.pzpg.ogr
 
 import android.os.Bundle
+import android.util.Log
 import android.util.Xml
 import android.view.LayoutInflater
 import android.view.View
@@ -14,10 +15,7 @@ import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node
-import java.io.File
-import java.io.IOException
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.*
 
 
 abstract class GraphActivity : AppCompatActivity() {
@@ -31,12 +29,27 @@ abstract class GraphActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_graph)
 
-        val graph: Graph = createGraph()
+        val fileName: String? = intent.getStringExtra("EXTRA_GRAPH_NAME")
+        val extension: String? = intent.getStringExtra("EXTRA_GRAPH_EXTENSION")
+        lateinit var graph: Graph
+
+        graph = if (fileName != null){
+                    when(extension){
+                        "graphml" -> readGraphGraphml(fileName)
+                        "graph6" -> readGraphSix(fileName)
+                        else->{
+                            readGraphGraphml(fileName)
+                        }
+                    }
+                } else {
+                    createGraph()
+                }
+
+        setupAdapter(graph)
+
 
         //setupToolbar()
         //setupFab(graph)
-        setupAdapter(graph)
-
 
     }
 
@@ -200,13 +213,22 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
-    fun readGraphGraphml(path: String): Graph{
+    fun readGraphGraphml(name: String): Graph{
         val parser = XmlParser()
-        return parser.parse(openFileInput(path))
+        val storageDir: File? = getExternalFilesDir("graph")
+        val file: File = File(storageDir, name)
+
+        val graph = parser.parse(FileInputStream(file))
+        Log.d("NODES", "${graph.nodeCount}")
+
+        return graph
     }
 
     fun saveGraphSix(graph: Graph){
 
+    }
+    fun readGraphSix(path: String): Graph{
+        return Graph()
     }
 
     abstract fun createGraph(): Graph

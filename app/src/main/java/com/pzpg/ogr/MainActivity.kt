@@ -67,6 +67,8 @@ class MainActivity : AppCompatActivity() {
 
     fun goGraphActivity(view: View){
         Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
+            graphActivity.putExtra("EXTRA_GRAPH_NAME", "test_graph_538587133.graphml")
+            graphActivity.putExtra("EXTRA_GRAPH_EXTENSION", "graphml")
             startActivity(graphActivity)
         }
     }
