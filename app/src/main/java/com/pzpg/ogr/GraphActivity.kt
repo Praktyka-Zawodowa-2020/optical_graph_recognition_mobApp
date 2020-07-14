@@ -35,8 +35,8 @@ abstract class GraphActivity : AppCompatActivity() {
 
         graph = if (fileName != null){
                     when(extension){
-                        "graphml" -> readGraphGraphml(fileName)
-                        "graph6" -> readGraphSix(fileName)
+                        "graphml", "gml" -> readGraphGraphml(fileName)
+                        "graph6", "g6" -> readGraphSix(fileName)
                         else->{
                             readGraphGraphml(fileName)
                         }
