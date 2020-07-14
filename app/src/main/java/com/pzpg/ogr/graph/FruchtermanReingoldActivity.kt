@@ -8,6 +8,7 @@ import de.blox.graphview.energy.FruchtermanReingoldAlgorithm
 import de.blox.graphview.edgerenderer.StraightEdgeRenderer
 
 class FruchtermanReingoldActivity: GraphActivity() {
+
     override fun createGraph(): Graph{
         val graph = Graph()
         val a = Node("1")
@@ -30,6 +31,7 @@ class FruchtermanReingoldActivity: GraphActivity() {
 
         return graph
     }
+
 
     override fun setLayout(view: GraphView) {
         val configurations = FruchtermanReingoldAlgorithm(1000)
