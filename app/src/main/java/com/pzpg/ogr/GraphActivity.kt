@@ -225,10 +225,10 @@ abstract class GraphActivity : AppCompatActivity() {
     }
 
     fun saveGraphSix(graph: Graph){
-
+        TODO("Not yet implemented")
     }
     fun readGraphSix(path: String): Graph{
-        return Graph()
+        TODO("Not yet implemented")
     }
 
     abstract fun createGraph(): Graph

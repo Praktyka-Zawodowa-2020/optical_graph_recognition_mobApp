@@ -1,5 +1,6 @@
-package com.pzpg.ogr.fragments.dummy
+package com.pzpg.ogr.fragments.listContent
 
+import java.io.File
 import java.util.ArrayList
 import java.util.HashMap
 
@@ -9,34 +10,39 @@ import java.util.HashMap
  *
  * TODO: Replace all uses of this class before publishing your app.
  */
-object DummyContent {
+object ListContent {
 
     /**
      * An array of sample (dummy) items.
      */
-    val ITEMS: MutableList<DummyItem> = ArrayList()
+    val ITEMS: MutableList<ListItem> = ArrayList()
 
     /**
      * A map of sample (dummy) items, by ID.
      */
-    val ITEM_MAP: MutableMap<String, DummyItem> = HashMap()
+    val ITEM_MAP: MutableMap<String, ListItem> = HashMap()
 
-    private val COUNT = 25
+    private var COUNT: Int = 0
 
     init {
         // Add some sample items.
-        for (i in 1..COUNT) {
-            addItem(createDummyItem(i))
-        }
     }
 
-    private fun addItem(item: DummyItem) {
+
+    fun addItem(item: ListItem) {
         ITEMS.add(item)
         ITEM_MAP.put(item.id, item)
+        COUNT += 1
     }
 
-    private fun createDummyItem(position: Int): DummyItem {
-        return DummyItem(position.toString(), "Item " + position, makeDetails(position))
+    fun reset(){
+        ITEMS.clear()
+        ITEM_MAP.clear()
+        COUNT = 0
+    }
+
+    fun createListItem(position: Int, content: String): ListItem{
+        return ListItem(position.toString(), content, makeDetails(position))
     }
 
     private fun makeDetails(position: Int): String {
@@ -49,9 +55,9 @@ object DummyContent {
     }
 
     /**
-     * A dummy item representing a piece of content.
+     * A graph item representing a piece of content.
      */
-    data class DummyItem(val id: String, val content: String, val details: String) {
+    data class ListItem(val id: String, val content: String, val details: String) {
         override fun toString(): String = content
     }
 }
