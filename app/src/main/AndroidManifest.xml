@@ -24,6 +24,7 @@
         android:theme="@style/AppTheme">
 
         <activity android:name="com.pzpg.ogr.graph.FruchtermanReingoldActivity">
+
         </activity>
 
         <activity android:name="com.pzpg.ogr.GraphActivity"
@@ -35,6 +36,8 @@
         <activity
             android:name="com.pzpg.ogr.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
+
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
