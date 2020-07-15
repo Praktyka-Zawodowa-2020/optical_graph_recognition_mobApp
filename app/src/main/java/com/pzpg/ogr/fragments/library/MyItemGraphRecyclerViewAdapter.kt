@@ -15,16 +15,16 @@ import com.pzpg.ogr.fragments.library.listContent.ListContent.ListItem
  */
 class MyItemGraphRecyclerViewAdapter(
     private val values: List<ListItem>,
-    onItemListner: OnItemListner
+    onItemListener: OnItemListener
 ) : RecyclerView.Adapter<MyItemGraphRecyclerViewAdapter.ViewHolder>() {
 
-    var mOnItemListner: OnItemListner = onItemListner
+    var mOnItemListener: OnItemListener = onItemListener
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.fragment_item, parent, false)
-        return ViewHolder(view, mOnItemListner)
+        return ViewHolder(view, mOnItemListener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -37,17 +37,17 @@ class MyItemGraphRecyclerViewAdapter(
 
 
 
-    inner class ViewHolder(view: View, onItemListner: OnItemListner) : RecyclerView.ViewHolder(view), View.OnClickListener {
+    inner class ViewHolder(view: View, onItemListener: OnItemListener) : RecyclerView.ViewHolder(view), View.OnClickListener {
         val idView: TextView = view.findViewById(R.id.item_number)
         val contentView: TextView = view.findViewById(R.id.content)
-        lateinit var onItemListner : OnItemListner
+        var onItemListener : OnItemListener
 
         init {
-            this.onItemListner = onItemListner
+            this.onItemListener = onItemListener
             view.setOnClickListener(this)
         }
         override fun onClick(p0: View?) {
-            onItemListner.onClick(adapterPosition)
+            onItemListener.onClick(adapterPosition)
         }
 
         override fun toString(): String {
@@ -55,7 +55,7 @@ class MyItemGraphRecyclerViewAdapter(
         }
     }
 
-    interface OnItemListner{
+    interface OnItemListener{
         fun onClick(position: Int);
     }
 }

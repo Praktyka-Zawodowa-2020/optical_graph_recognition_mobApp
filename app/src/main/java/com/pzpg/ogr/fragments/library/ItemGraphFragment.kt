@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -20,7 +22,7 @@ import java.io.File
  * A fragment representing a list of Items.
  */
 class ItemGraphFragment : Fragment(),
-    MyItemGraphRecyclerViewAdapter.OnItemListner {
+    MyItemGraphRecyclerViewAdapter.OnItemListener {
 
     private var columnCount = 1
     private var cl = this
@@ -39,7 +41,7 @@ class ItemGraphFragment : Fragment(),
     ): View? {
 
 
-        val view = inflater.inflate(R.layout.fragment_item_list, container, false)
+
         val graphs = getListGraphs()
 
         ListContent.reset()
@@ -50,9 +52,20 @@ class ItemGraphFragment : Fragment(),
             pos += 1
         }
 
+
+        val root = inflater.inflate(R.layout.fragment_item_list, container, false)
+
+        val recyclerView:View = root.findViewById(R.id.list)
+        val emptyView:View = root.findViewById(R.id.empty_view)
+        
+        if (graphs.isEmpty()){
+            recyclerView.visibility = GONE
+            emptyView.visibility = VISIBLE
+        }
+
         // Set the adapter
-        if (view is RecyclerView) {
-            with(view) {
+        if (recyclerView is RecyclerView) {
+            with(recyclerView) {
                 layoutManager = when {
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
@@ -64,11 +77,13 @@ class ItemGraphFragment : Fragment(),
                     )
             }
         }
-        return view
+
+
+        return root
     }
 
-    private fun getListGraphs(): Array<File>?{
-        return requireActivity().getExternalFilesDir("graph")?.listFiles()
+    private fun getListGraphs(): Array<File>{
+        return requireActivity().getExternalFilesDir("graph")!!.listFiles()
     }
 
     companion object {
