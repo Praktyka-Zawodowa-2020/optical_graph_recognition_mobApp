@@ -1,4 +1,4 @@
-package com.pzpg.ogr.fragments
+package com.pzpg.ogr.fragments.library
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzpg.ogr.R
-import com.pzpg.ogr.fragments.listContent.ListContent
+import com.pzpg.ogr.fragments.library.listContent.ListContent
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import java.io.File
 
@@ -19,7 +19,8 @@ import java.io.File
 /**
  * A fragment representing a list of Items.
  */
-class ItemGraphFragment : Fragment(), MyItemGraphRecyclerViewAdapter.OnItemListner {
+class ItemGraphFragment : Fragment(),
+    MyItemGraphRecyclerViewAdapter.OnItemListner {
 
     private var columnCount = 1
     private var cl = this
@@ -36,6 +37,8 @@ class ItemGraphFragment : Fragment(), MyItemGraphRecyclerViewAdapter.OnItemListn
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+
         val view = inflater.inflate(R.layout.fragment_item_list, container, false)
         val graphs = getListGraphs()
 
@@ -54,7 +57,11 @@ class ItemGraphFragment : Fragment(), MyItemGraphRecyclerViewAdapter.OnItemListn
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter = MyItemGraphRecyclerViewAdapter(ListContent.ITEMS, cl)
+                adapter =
+                    MyItemGraphRecyclerViewAdapter(
+                        ListContent.ITEMS,
+                        cl
+                    )
             }
         }
         return view

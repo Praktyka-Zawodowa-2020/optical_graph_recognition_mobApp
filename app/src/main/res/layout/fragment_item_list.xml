@@ -10,5 +10,5 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context=".fragments.ItemGraphFragment"
+    tools:context=".fragments.library.ItemGraphFragment"
     tools:listitem="@layout/fragment_item" />

@@ -1,4 +1,4 @@
-package com.pzpg.ogr.fragments
+package com.pzpg.ogr.fragments.library
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.pzpg.ogr.R
-import com.pzpg.ogr.fragments.listContent.ListContent.ListItem
+import com.pzpg.ogr.fragments.library.listContent.ListContent.ListItem
 
 
 /**
@@ -40,7 +40,7 @@ class MyItemGraphRecyclerViewAdapter(
     inner class ViewHolder(view: View, onItemListner: OnItemListner) : RecyclerView.ViewHolder(view), View.OnClickListener {
         val idView: TextView = view.findViewById(R.id.item_number)
         val contentView: TextView = view.findViewById(R.id.content)
-        lateinit var onItemListner :OnItemListner
+        lateinit var onItemListner : OnItemListner
 
         init {
             this.onItemListner = onItemListner
