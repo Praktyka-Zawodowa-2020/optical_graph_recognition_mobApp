@@ -15,6 +15,7 @@ import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node
+import org.xmlpull.v1.XmlPullParserException
 import java.io.*
 
 
@@ -31,21 +32,30 @@ abstract class GraphActivity : AppCompatActivity() {
 
         val fileName: String? = intent.getStringExtra("EXTRA_GRAPH_NAME")
         val extension: String? = intent.getStringExtra("EXTRA_GRAPH_EXTENSION")
-        lateinit var graph: Graph
+        var graph: Graph? = null
 
-        graph = if (fileName != null){
-                    when(extension){
-                        "graphml", "gml" -> readGraphGraphml(fileName)
-                        "graph6", "g6" -> readGraphSix(fileName)
-                        else->{
-                            readGraphGraphml(fileName)
-                        }
+        try {
+            graph = if (fileName != null){
+                when(extension){
+                    "graphml", "gml" -> readGraphGraphml(fileName)
+                    "graph6", "g6" -> readGraphSix(fileName)
+                    else->{
+                        readGraphGraphml(fileName)
                     }
-                } else {
-                    createGraph()
                 }
+            } else {
+                createGraph()
+            }
+        }catch (e: XmlPullParserException){
+            graph = null
+            Log.d("EXCEPTION", e.toString())
+            finish()
+        }
 
-        setupAdapter(graph)
+        graph?.also {
+            setupAdapter(it)
+        }
+
 
 
         //setupToolbar()
