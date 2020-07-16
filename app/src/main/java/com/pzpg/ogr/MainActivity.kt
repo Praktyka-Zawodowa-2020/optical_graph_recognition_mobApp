@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var myAccount: GoogleSignInAccount? = null
 
+    lateinit var intentATS: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
@@ -56,6 +56,12 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        myAccount = GoogleSignIn.getLastSignedInAccount(this)
+
+        val serviceClass = AuthorizeTokenService::class.java
+        intentATS = Intent(this, serviceClass)
+
+        startService(intentATS)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -70,7 +76,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun signIn(view: View){
-        myAccount = GoogleSignIn.getLastSignedInAccount(this)
         if (myAccount != null){
             goGraphActivity(view)
         }else{
@@ -153,5 +158,10 @@ class MainActivity : AppCompatActivity() {
                 imageView.setImageBitmap(imageBitmap)
             }
         }
+    }
+
+    override fun onDestroy() {
+        stopService(intentATS)
+        super.onDestroy()
     }
 }
