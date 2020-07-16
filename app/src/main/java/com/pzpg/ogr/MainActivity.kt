@@ -29,6 +29,7 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
+    val TAG = "MainActivity"
     lateinit var currentPhotoPath: String
     lateinit var imageView: ImageView
 
@@ -39,6 +40,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        Log.d(TAG, "activity has been created")
 
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -135,6 +138,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
+        Log.d(TAG, "onActivityResult")
 
         if (requestCode == REQUEST_CAMERA_PHOTO && resultCode == RESULT_OK) {
             imageView = findViewById(R.id.imageView)

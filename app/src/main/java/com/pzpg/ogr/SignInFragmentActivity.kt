@@ -13,8 +13,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 
@@ -29,6 +31,9 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
         setContentView(R.layout.fragment_activity_sign_in)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestScopes(Scope(Scopes.DRIVE_FULL))
+            .requestServerAuthCode(getString(R.string.WEB_ID))
+            .requestIdToken(getString(R.string.WEB_ID))
             .requestEmail()
             .build()
 
@@ -104,7 +109,7 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
+        Log.d("SIGN IN FRAGMENT", "onActivityResult")
 
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -120,7 +125,16 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
         try {
             val account = completedTask.getResult(ApiException::class.java)
             // Signed in successfully, show authenticated UI.
-            Log.w("Sign in", "signInResult:succeeded")
+            Log.d("Sign in", "signInResult:succeeded")
+
+
+            // Call Optical Graph Server Api and authorize it aswell
+            try {
+                AuthorizeOpticalGraphApi().execute(account)
+            } catch (e: Exception) {
+                Log.d("AUTHORIZE SERVER", e.toString())
+            }
+
             updateUI(account!!)
         } catch (e: ApiException) {
             // The ApiException status code indicates the detailed failure reason.

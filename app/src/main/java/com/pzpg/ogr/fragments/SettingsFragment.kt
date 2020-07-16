@@ -17,6 +17,8 @@ import com.pzpg.ogr.SignInFragmentActivity
 
 class SettingsFragment : Fragment(), View.OnClickListener {
 
+    val TAG = "SettingsFragment"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -52,7 +54,6 @@ class SettingsFragment : Fragment(), View.OnClickListener {
     }
 
     override fun onClick(view: View) {
-
         if (view.id == R.id.button_signInOut){
             Intent(requireActivity(), SignInFragmentActivity::class.java).also { signInActivity ->
                 val account = GoogleSignIn.getLastSignedInAccount(requireActivity())
@@ -66,14 +67,12 @@ class SettingsFragment : Fragment(), View.OnClickListener {
 
             }
         }
-
-        getView()?.also {
-            updateUI(it)
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
+        Log.d(TAG, "onActivityResult")
 
         when(requestCode){
             REQUEST_SIGN_OUT_SETTING -> view?.also {
