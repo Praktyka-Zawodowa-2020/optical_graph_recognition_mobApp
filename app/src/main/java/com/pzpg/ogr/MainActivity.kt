@@ -17,6 +17,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.material.navigation.NavigationView
 import java.io.File
 import java.io.IOException
@@ -33,6 +35,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var imageView: ImageView
 
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private var myAccount: GoogleSignInAccount? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +68,16 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    fun signIn(view: View){
+        myAccount = GoogleSignIn.getLastSignedInAccount(this)
+        if (myAccount != null){
+            goGraphActivity(view)
+        }else{
+            Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
+                startActivity(signInActivity)
+            }
+        }
+    }
 
     fun goGraphActivity(view: View){
         Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->

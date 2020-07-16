@@ -32,6 +32,9 @@ abstract class GraphActivity : AppCompatActivity() {
 
         val fileName: String? = intent.getStringExtra("EXTRA_GRAPH_NAME")
         val extension: String? = intent.getStringExtra("EXTRA_GRAPH_EXTENSION")
+
+
+
         var graph: Graph? = null
 
         try {
@@ -50,17 +53,22 @@ abstract class GraphActivity : AppCompatActivity() {
             graph = null
             Log.d("EXCEPTION", e.toString())
             finish()
+        }catch (e: FileNotFoundException){
+            graph = null
+            Log.d("EXCEPTION", e.toString())
+            finish()
         }
 
         graph?.also {
             setupAdapter(it)
         }
 
-
-
         //setupToolbar()
         //setupFab(graph)
+    }
 
+    private fun checkFileExist(name: String): Boolean{
+        return File(getExternalFilesDir("graph"), name).exists()
     }
 
     /*private fun setupFab(graph: Graph) {

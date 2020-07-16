@@ -33,4 +33,9 @@
         android:name="com.pzpg.ogr.GraphActivity"
         android:label="activity_graph"
         tools:layout="@layout/activity_graph" />
+    <activity
+        android:id="@+id/signInFragmentActivity"
+        android:name="com.pzpg.ogr.SignInFragmentActivity"
+        android:label="fragment_activity_sign_in"
+        tools:layout="@layout/fragment_activity_sign_in" />
 </navigation>

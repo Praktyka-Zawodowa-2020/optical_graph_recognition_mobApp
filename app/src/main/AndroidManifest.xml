@@ -12,7 +12,11 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:required="true" />
-    <uses-permission android:name="android.permission.CAMERA"
+    <uses-permission
+        android:name="android.permission.CAMERA"
+        android:required="true" />
+    <uses-permission
+        android:name="android.permission.INTERNET"
         android:required="true" />
 
     <application
@@ -22,22 +26,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name="com.pzpg.ogr.graph.FruchtermanReingoldActivity">
-
-        </activity>
-
-        <activity android:name="com.pzpg.ogr.GraphActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
-
-
+        <activity android:name=".SignInFragmentActivity"></activity>
+        <activity android:name=".graph.FruchtermanReingoldActivity"></activity>
         <activity
-            android:name="com.pzpg.ogr.MainActivity"
+            android:name=".GraphActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
-
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
