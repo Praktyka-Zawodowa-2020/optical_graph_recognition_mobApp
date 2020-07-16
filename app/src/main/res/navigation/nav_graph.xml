@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_nav_home_to_graphActivity"
             app:destination="@id/graphActivity" />
+        <action
+            android:id="@+id/action_nav_home_to_signInFragmentActivity"
+            app:destination="@id/signInFragmentActivity" />
     </fragment>
     <fragment
         android:id="@+id/nav_history"
@@ -38,4 +41,9 @@
         android:name="com.pzpg.ogr.SignInFragmentActivity"
         android:label="fragment_activity_sign_in"
         tools:layout="@layout/fragment_activity_sign_in" />
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.pzpg.ogr.fragments.SettingsFragment"
+        android:label="fragment_settings"
+        tools:layout="@layout/fragment_settings" />
 </navigation>

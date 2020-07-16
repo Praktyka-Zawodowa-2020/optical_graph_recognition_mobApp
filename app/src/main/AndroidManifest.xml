@@ -26,11 +26,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SignInFragmentActivity"></activity>
-        <activity android:name=".graph.FruchtermanReingoldActivity"></activity>
+        <activity android:name=".SignInFragmentActivity" />
+        <activity android:name=".graph.FruchtermanReingoldActivity" />
         <activity
             android:name=".GraphActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">

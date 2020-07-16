@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.widget.ImageView
@@ -20,16 +21,13 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.material.navigation.NavigationView
+import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import java.io.File
 import java.io.IOException
-import com.pzpg.ogr.graph.FruchtermanReingoldActivity
+
 
 
 class MainActivity : AppCompatActivity() {
-
-
-    val REQUEST_GALLERY_PHOTO = 1
-    val REQUEST_TAKE_PHOTO = 3
 
     lateinit var currentPhotoPath: String
     lateinit var imageView: ImageView
@@ -74,6 +72,7 @@ class MainActivity : AppCompatActivity() {
             goGraphActivity(view)
         }else{
             Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
+                signInActivity.putExtra("EXTRA_ACTION", "notify_sign_in")
                 startActivity(signInActivity)
             }
         }
@@ -113,7 +112,7 @@ class MainActivity : AppCompatActivity() {
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+                    startActivityForResult(takePictureIntent, REQUEST_CAMERA_PHOTO)
                 }
             }
         }
@@ -136,13 +135,14 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        imageView = findViewById(R.id.imageView)
 
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == AppCompatActivity.RESULT_OK) {
+        if (requestCode == REQUEST_CAMERA_PHOTO && resultCode == RESULT_OK) {
+            imageView = findViewById(R.id.imageView)
             val file = File(currentPhotoPath)
             val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
             imageView.setImageBitmap(imageBitmap)
-        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == AppCompatActivity.RESULT_OK){
+        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == RESULT_OK){
+            imageView = findViewById(R.id.imageView)
             val imageURI: Uri? = data?.data as Uri
             if (imageURI != null) {
                 val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageURI)

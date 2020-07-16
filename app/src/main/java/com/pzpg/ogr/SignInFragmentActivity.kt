@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -14,6 +15,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 
 
@@ -26,14 +28,36 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_activity_sign_in)
 
-        val buttonSignIn: SignInButton = findViewById(R.id.sign_in_button)
-        buttonSignIn.setOnClickListener(this)
-
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build()
+            .requestEmail()
+            .build()
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        val action: String? = intent.getStringExtra("EXTRA_ACTION")
+
+        action?.also {
+            when(it){
+                "sign_in" -> {
+                    signIn()
+                    finish()
+                }
+                "sign_out" -> {
+
+                    signOut()
+                    finish()
+                }
+                "notify_sign_in" ->{
+
+                }
+            }
+        }
+
+
+        val buttonSignIn: SignInButton = findViewById(R.id.sign_in_button)
+        val buttonBack: Button = findViewById(R.id.button_back)
+        buttonSignIn.setOnClickListener(this)
+        buttonBack.setOnClickListener(this)
     }
 
     override fun onStart() {
@@ -47,22 +71,34 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
 
 
     private fun updateUI(account: GoogleSignInAccount?){
-        if (account != null){
-            findViewById<TextView>(R.id.signIn_complete).also {
-                it.visibility = VISIBLE
-                it.text = account.displayName
-            }
+        val signInTextInfo = findViewById<TextView>(R.id.signIn_info)
+        val signInButton = findViewById<SignInButton>(R.id.sign_in_button)
+        val signOutButton = findViewById<Button>(R.id.button_signInOut)
 
-            findViewById<SignInButton>(R.id.sign_in_button).also{
-                it.visibility = GONE
-            }
+        if (account != null){
+            signInTextInfo.text = account.displayName
+            signInButton.visibility = GONE
+            signOutButton.visibility = VISIBLE
+        }else{
+            signInTextInfo.text = "You are not actually logIn"
+            signInButton.visibility = VISIBLE
+            signOutButton.visibility = GONE
         }
     }
 
-
     private fun signIn() {
-        val signInIntent: Intent = mGoogleSignInClient.signInIntent
-        startActivityForResult(signInIntent, RC_SIGN_IN)
+        mGoogleSignInClient.signInIntent.also {
+            startActivityForResult(it, RC_SIGN_IN)
+        }
+    }
+
+    private fun signOut(){
+        mGoogleSignInClient.signOut()
+            .addOnCompleteListener(this, object : OnCompleteListener<Void> {
+                override fun onComplete(task: Task<Void?>) {
+                    // ...
+                }
+            })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -97,6 +133,7 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
     override fun onClick(view: View) {
         when (view.id) {
             R.id.sign_in_button -> signIn()
+            R.id.button_back -> finish()
         }
     }
 
