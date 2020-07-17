@@ -21,7 +21,7 @@ import java.io.File
 /**
  * A fragment representing a list of Items.
  */
-class ItemGraphFragment : Fragment(),
+class LibraryFragment : Fragment(),
     MyItemGraphRecyclerViewAdapter.OnItemListener {
 
     private var columnCount = 1
@@ -94,7 +94,7 @@ class ItemGraphFragment : Fragment(),
         // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(columnCount: Int) =
-            ItemGraphFragment().apply {
+            LibraryFragment().apply {
                 arguments = Bundle().apply {
                     putInt(ARG_COLUMN_COUNT, columnCount)
                 }

@@ -24,7 +24,7 @@
         tools:layout="@layout/fragment_history" />
     <fragment
         android:id="@+id/nav_library"
-        android:name="com.pzpg.ogr.fragments.library.ItemGraphFragment"
+        android:name="com.pzpg.ogr.fragments.library.LibraryFragment"
         android:label="fragment_library"
         tools:layout="@layout/fragment_item_list" >
         <action
@@ -38,7 +38,7 @@
         tools:layout="@layout/activity_graph" />
     <activity
         android:id="@+id/signInFragmentActivity"
-        android:name="com.pzpg.ogr.SignInFragmentActivity"
+        android:name="com.pzpg.ogr.authorize_google.SignInFragmentActivity"
         android:label="fragment_activity_sign_in"
         tools:layout="@layout/fragment_activity_sign_in" />
     <fragment
@@ -46,4 +46,9 @@
         android:name="com.pzpg.ogr.fragments.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/nav_test_fr"
+        android:name="com.pzpg.ogr.fragments.TestsFragment"
+        android:label="fragment_tests"
+        tools:layout="@layout/fragment_tests" />
 </navigation>

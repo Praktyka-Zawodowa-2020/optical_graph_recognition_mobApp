@@ -21,6 +21,9 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.material.navigation.NavigationView
+import com.pzpg.ogr.authorize_google.EXTRA_ACTION
+import com.pzpg.ogr.authorize_google.SIGN_LAYOUT
+import com.pzpg.ogr.authorize_google.SignInFragmentActivity
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import java.io.File
 import java.io.IOException
@@ -35,8 +38,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var myAccount: GoogleSignInAccount? = null
-
-    lateinit var intentATS: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,10 +59,6 @@ class MainActivity : AppCompatActivity() {
 
         myAccount = GoogleSignIn.getLastSignedInAccount(this)
 
-        val serviceClass = AuthorizeTokenService::class.java
-        intentATS = Intent(this, serviceClass)
-
-        startService(intentATS)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -76,14 +73,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun signIn(view: View){
+
+        Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
+            signInActivity.putExtra(EXTRA_ACTION, SIGN_LAYOUT)
+            startActivity(signInActivity)
+        }
+
+        /*myAccount = GoogleSignIn.getLastSignedInAccount(this)
         if (myAccount != null){
+            Log.d("ACCOUNT", myAccount.toString())
             goGraphActivity(view)
         }else{
             Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
-                signInActivity.putExtra("EXTRA_ACTION", "notify_sign_in")
+                signInActivity.putExtra(EXTRA_ACTION, SIGN_LAYOUT)
                 startActivity(signInActivity)
             }
-        }
+        }*/
     }
 
     fun goGraphActivity(view: View){
@@ -160,8 +165,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        stopService(intentATS)
-        super.onDestroy()
-    }
 }
