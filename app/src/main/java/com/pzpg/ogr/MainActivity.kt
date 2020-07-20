@@ -33,11 +33,7 @@ import java.io.IOException
 class MainActivity : AppCompatActivity() {
 
     val TAG = "MainActivity"
-    lateinit var currentPhotoPath: String
-    lateinit var imageView: ImageView
-
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private var myAccount: GoogleSignInAccount? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,8 +53,6 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        myAccount = GoogleSignIn.getLastSignedInAccount(this)
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -72,23 +66,14 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+
+
     fun signIn(view: View){
 
         Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
             signInActivity.putExtra(EXTRA_ACTION, SIGN_LAYOUT)
             startActivity(signInActivity)
         }
-
-        /*myAccount = GoogleSignIn.getLastSignedInAccount(this)
-        if (myAccount != null){
-            Log.d("ACCOUNT", myAccount.toString())
-            goGraphActivity(view)
-        }else{
-            Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
-                signInActivity.putExtra(EXTRA_ACTION, SIGN_LAYOUT)
-                startActivity(signInActivity)
-            }
-        }*/
     }
 
     fun goGraphActivity(view: View){
@@ -99,70 +84,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun openGallery(view: View){
-        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also { pickPictureGallery->
-            pickPictureGallery.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            startActivityForResult(pickPictureGallery, REQUEST_GALLERY_PHOTO);
-        }
-    }
-
-    fun takePhoto(view: View){
-        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            // Ensure that there's a camera activity to handle the intent
-            takePictureIntent.resolveActivity(packageManager)?.also {
-                // Create the File where the photo should go
-                val photoFile: File? = try {
-                    createImageFile()
-                } catch (ex: IOException) {
-                    // Error occurred while creating the File
-                    null
-                }
-                // Continue only if the File was successfully created
-                photoFile?.also {
-                    val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        "com.pzpg.org.fileprovider",
-                        it
-                    )
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                    startActivityForResult(takePictureIntent, REQUEST_CAMERA_PHOTO)
-                }
-            }
-        }
-    }
-
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        // Create an image file name
-        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            "JPEG_test_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        ).apply {
-            // Save a file: path for use with ACTION_VIEW intents
-            currentPhotoPath = absolutePath
-        }
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        Log.d(TAG, "onActivityResult")
-
-        if (requestCode == REQUEST_CAMERA_PHOTO && resultCode == RESULT_OK) {
-            imageView = findViewById(R.id.imageView)
-            val file = File(currentPhotoPath)
-            val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.fromFile(file))
-            imageView.setImageBitmap(imageBitmap)
-        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == RESULT_OK){
-            imageView = findViewById(R.id.imageView)
-            val imageURI: Uri? = data?.data as Uri
-            if (imageURI != null) {
-                val imageBitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageURI)
-                imageView.setImageBitmap(imageBitmap)
-            }
-        }
     }
 
 }

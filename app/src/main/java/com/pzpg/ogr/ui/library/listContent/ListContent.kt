@@ -1,4 +1,4 @@
-package com.pzpg.ogr.fragments.library.listContent
+package com.pzpg.ogr.ui.library.listContent
 
 import java.util.ArrayList
 import java.util.HashMap

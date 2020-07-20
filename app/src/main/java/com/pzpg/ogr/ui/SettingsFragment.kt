@@ -1,14 +1,15 @@
-package com.pzpg.ogr.fragments
+package com.pzpg.ogr.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.R
@@ -23,10 +24,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+
 class SettingsFragment : Fragment(), View.OnClickListener {
 
     private val TAG = "SettingsFragment"
-    private lateinit var myView: View
+    private var account: GoogleSignInAccount? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +44,11 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
         val signOutButton = view.findViewById<Button>(R.id.button_signInOut)
-        val refreshTokenButton = view.findViewById<Button>(R.id.button_takeToken)
+        val refreshTokenButton = view.findViewById<Button>(R.id.button_refreshToken)
         signOutButton.setOnClickListener(this)
         refreshTokenButton.setOnClickListener(this)
+
+
 
         updateUI(view)
         return view
@@ -53,9 +57,9 @@ class SettingsFragment : Fragment(), View.OnClickListener {
     private fun updateUI(view: View){
         val accountTextView = view.findViewById<TextView>(R.id.textView_infoAccount)
         val buttonSignInOut = view.findViewById<Button>(R.id.button_signInOut)
-        val account = GoogleSignIn.getLastSignedInAccount(requireActivity())
+        account = GoogleSignIn.getLastSignedInAccount(requireActivity())
         if (account != null){
-            accountTextView.text = account.displayName
+            accountTextView.text = account!!.displayName
             buttonSignInOut.text = "sign out"
         }
         else{
@@ -66,11 +70,28 @@ class SettingsFragment : Fragment(), View.OnClickListener {
 
     private fun getToken(account: GoogleSignInAccount?)
     {
-        //val tokenInfo: TextView? = requireView().findViewById(R.id.textView_token)
+        val sharedPref = requireActivity().getSharedPreferences(getString(R.string.user_preferences), Context.MODE_PRIVATE)
         CoroutineScope(Dispatchers.Main).launch{
-            val result = RequestServer().authorize(account)
-            Log.d("TOKEN", result.toString())
-            //tokenInfo?.text = result?.getString("jwtToken")
+
+            val result = RequestServer(getString(R.string.url_server)).authorize(account)
+            with(sharedPref.edit()){
+                putString(getString(R.string.jwtToken), result?.get("jwtToken"))
+                putString(getString(R.string.refreshToken), result?.get("refreshToken"))
+                commit()
+            }
+
+        }
+    }
+
+    private fun refreshToken(){
+        val sharedPref = requireActivity().getSharedPreferences(getString(R.string.user_preferences), Context.MODE_PRIVATE)
+        val jwtToken = sharedPref!!.getString(getString(R.string.jwtToken), null)
+        val refreshToken = sharedPref!!.getString(getString(R.string.refreshToken), null)
+
+        CoroutineScope(Dispatchers.Main).launch{
+
+            val result = RequestServer(getString(R.string.url_server)).refreshToken(refreshToken!!, jwtToken!!)
+
         }
     }
 
@@ -88,8 +109,8 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                     }
                 }
             }
-            R.id.button_takeToken -> {
-                getToken(account)
+            R.id.button_refreshToken -> {
+                refreshToken()
             }
         }
     }
@@ -97,14 +118,14 @@ class SettingsFragment : Fragment(), View.OnClickListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        Log.d(TAG, "onActivityResult")
-
         when(requestCode){
             REQUEST_SIGN_OUT_SETTING -> view?.also {
                 updateUI(it)
             }
             REQUEST_SIGN_IN_SETTING -> view?.also {
                 updateUI(it)
+                getToken(account)
+
             }
         }
     }

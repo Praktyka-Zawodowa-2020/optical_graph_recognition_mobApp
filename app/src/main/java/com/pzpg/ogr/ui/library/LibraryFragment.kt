@@ -1,4 +1,4 @@
-package com.pzpg.ogr.fragments.library
+package com.pzpg.ogr.ui.library
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzpg.ogr.R
-import com.pzpg.ogr.fragments.library.listContent.ListContent
+import com.pzpg.ogr.ui.library.listContent.ListContent
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import java.io.File
 
@@ -24,15 +24,21 @@ import java.io.File
 class LibraryFragment : Fragment(),
     MyItemGraphRecyclerViewAdapter.OnItemListener {
 
+
     private var columnCount = 1
     private var cl = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        Log.i("LibraryFragment", "onCreate")
         arguments?.let {
             columnCount = it.getInt(ARG_COLUMN_COUNT)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i("LibraryFragment", "onDestroy")
     }
 
     override fun onCreateView(

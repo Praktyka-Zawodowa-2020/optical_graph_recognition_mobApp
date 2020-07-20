@@ -1,4 +1,4 @@
-package com.pzpg.ogr.fragments.library
+package com.pzpg.ogr.ui.library
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.pzpg.ogr.R
-import com.pzpg.ogr.fragments.library.listContent.ListContent.ListItem
+import com.pzpg.ogr.ui.library.listContent.ListContent.ListItem
 
 
 /**

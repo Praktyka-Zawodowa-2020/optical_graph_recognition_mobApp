@@ -5,7 +5,7 @@
     android:id="@+id/fragment_home"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.HomeFragment">
+    tools:context=".ui.takePicture.TakePictureFragment">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -47,7 +47,6 @@
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="0dp"
         android:layout_height="80dp"
-        android:onClick="signIn"
         android:text="@string/process"
         app:layout_constraintBottom_toTopOf="@+id/button_gallery"
         app:layout_constraintEnd_toEndOf="parent"

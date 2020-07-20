@@ -1,5 +1,6 @@
 package com.pzpg.ogr.authorize_google
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -41,7 +42,7 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_activity_sign_in)
 
-        requestServerServer = RequestServer()
+        requestServerServer = RequestServer(getString(R.string.url_server))
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestScopes(Scope(Scopes.DRIVE_FULL))
@@ -70,7 +71,6 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
                 }
             }
         }
-
 
         val buttonSignIn: SignInButton = findViewById(R.id.sign_in_button)
         val buttonBack: Button = findViewById(R.id.button_back)
@@ -161,9 +161,15 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
 
     private fun getToken(account: GoogleSignInAccount?)
     {
+        Log.i("getToken", "getToken IN")
+        val sharedPref = getSharedPreferences(getString(R.string.user_preferences) ,Context.MODE_PRIVATE)
         CoroutineScope(Dispatchers.IO).launch{
             val result = requestServerServer.authorize(account)
-            Log.d("TOKEN", result.toString())
+
+            with (sharedPref.edit()) {
+                putString(getString(R.string.jwtToken), result?.get("jwtToken").toString())
+                commit()
+            }
         }
     }
 

@@ -30,7 +30,7 @@
         <menu>
             <item
                 android:id="@+id/nav_test_fr"
-                android:title="Settings"/>
+                android:title="Test"/>
         </menu>
     </item>
 </menu>

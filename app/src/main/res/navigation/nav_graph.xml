@@ -7,9 +7,9 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.pzpg.ogr.fragments.HomeFragment"
+        android:name="com.pzpg.ogr.ui.takePicture.TakePictureFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_take_picture" >
         <action
             android:id="@+id/action_nav_home_to_graphActivity"
             app:destination="@id/graphActivity" />
@@ -19,12 +19,12 @@
     </fragment>
     <fragment
         android:id="@+id/nav_history"
-        android:name="com.pzpg.ogr.fragments.HistoryFragment"
+        android:name="com.pzpg.ogr.ui.HistoryFragment"
         android:label="fragment_history"
         tools:layout="@layout/fragment_history" />
     <fragment
         android:id="@+id/nav_library"
-        android:name="com.pzpg.ogr.fragments.library.LibraryFragment"
+        android:name="com.pzpg.ogr.ui.library.LibraryFragment"
         android:label="fragment_library"
         tools:layout="@layout/fragment_item_list" >
         <action
@@ -43,12 +43,12 @@
         tools:layout="@layout/fragment_activity_sign_in" />
     <fragment
         android:id="@+id/nav_settings"
-        android:name="com.pzpg.ogr.fragments.SettingsFragment"
+        android:name="com.pzpg.ogr.ui.SettingsFragment"
         android:label="fragment_settings"
         tools:layout="@layout/fragment_settings" />
     <fragment
         android:id="@+id/nav_test_fr"
-        android:name="com.pzpg.ogr.fragments.TestsFragment"
+        android:name="com.pzpg.ogr.ui.TestsFragment"
         android:label="fragment_tests"
         tools:layout="@layout/fragment_tests" />
 </navigation>

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".fragments.SettingsFragment">
+    tools:context=".ui.SettingsFragment">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -43,7 +43,7 @@
             android:text="@string/hello_blank_fragment" />
 
         <Button
-            android:id="@+id/button_takeToken"
+            android:id="@+id/button_refreshToken"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="refresh" />
