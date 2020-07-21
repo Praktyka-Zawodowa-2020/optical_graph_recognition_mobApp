@@ -11,6 +11,7 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.pzpg.ogr.graph.XmlParser
 import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
@@ -33,7 +34,7 @@ abstract class GraphActivity : AppCompatActivity() {
         val fileName: String? = intent.getStringExtra("EXTRA_GRAPH_NAME")
         val extension: String? = intent.getStringExtra("EXTRA_GRAPH_EXTENSION")
 
-
+        supportActionBar?.title = fileName;
 
         var graph: Graph? = null
 
@@ -93,7 +94,12 @@ abstract class GraphActivity : AppCompatActivity() {
 
     private fun setupAdapter(graph: Graph){
         graphView = findViewById(R.id.graph)
+
+
+
         setLayout(graphView)
+
+
         adapter = object : GraphAdapter<GraphView.ViewHolder>(graph) {
             override fun getCount(): Int {
                 return graph.nodeCount

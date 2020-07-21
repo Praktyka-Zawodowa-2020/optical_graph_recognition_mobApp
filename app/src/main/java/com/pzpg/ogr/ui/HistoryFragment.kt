@@ -1,4 +1,4 @@
-package com.pzpg.ogr.fragments
+package com.pzpg.ogr.ui
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
