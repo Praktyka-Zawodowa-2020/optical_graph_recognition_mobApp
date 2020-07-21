@@ -34,7 +34,7 @@ class FruchtermanReingoldActivity: GraphActivity() {
 
 
     override fun setLayout(view: GraphView) {
-        val configurations = FruchtermanReingoldAlgorithm(1000)
+        val configurations = Algorithm(1000)
         configurations.setEdgeRenderer(StraightEdgeRenderer())
         view.setLayout(configurations)
     }

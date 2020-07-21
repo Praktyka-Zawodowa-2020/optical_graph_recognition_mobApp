@@ -1,4 +1,4 @@
-package com.pzpg.ogr
+package com.pzpg.ogr.graph
 
 import android.util.Log
 import android.util.Xml
@@ -29,13 +29,21 @@ class XmlParser{
         val graph = Graph()
         val arrNode = ArrayList<Node>()
 
+        var curNode: Node? = null
+
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             when(parser.eventType){
                 XmlPullParser.START_TAG ->{
                     when(parser.name){
                         "node" -> {
                             val id = parser.getAttributeValue(null, "id")
-                            arrNode.add(Node(id))
+                            curNode = Node(id)
+                        }
+                        "y:Geometry"->
+                        {
+                            val x = parser.getAttributeValue(null, "x")
+                            val y = parser.getAttributeValue(null, "y")
+                            curNode!!.setPosition(x.toFloat(), y.toFloat())
                         }
                         "edge" -> {
                             val sourceId = parser.getAttributeValue(null, "source")
@@ -45,6 +53,15 @@ class XmlParser{
                             val d = arrNode.indexOf(arrNode.filter{ it.data == targetId}[0])
 
                             graph.addEdge(arrNode[s], arrNode[d])
+                        }
+                    }
+                }
+                XmlPullParser.END_TAG -> {
+                    when(parser.name){
+                        "node" -> {
+                            if (curNode != null) {
+                                arrNode.add(curNode)
+                            }
                         }
                     }
                 }

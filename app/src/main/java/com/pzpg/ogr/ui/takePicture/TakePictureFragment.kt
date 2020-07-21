@@ -3,6 +3,8 @@ package com.pzpg.ogr.ui.takePicture
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -13,12 +15,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.pzpg.ogr.ProcessActivity
 import com.pzpg.ogr.R
 import com.pzpg.ogr.REQUEST_CAMERA_PHOTO
 import com.pzpg.ogr.REQUEST_GALLERY_PHOTO
@@ -32,7 +37,8 @@ class TakePictureFragment : Fragment() {
     private lateinit var viewModel: TakePictureViewModel
 
     private lateinit var  imageView: ImageView
-    private lateinit var currentPhotoPath: String
+    private var currentPhotoPath: String? = null
+    private var photoUri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,13 +50,15 @@ class TakePictureFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_take_picture, container, false)
-        imageView = view.findViewById<ImageView>(R.id.imageView)
+        imageView = view.findViewById(R.id.imageView)
 
         viewModel = ViewModelProviders.of(this).get(TakePictureViewModel::class.java)
         imageView.setImageBitmap(viewModel.image)
 
 
-
+        imageView.setOnClickListener{
+            editPhoto(it)
+        }
         view.findViewById<Button>(R.id.button_camera).setOnClickListener {
             takePhoto(it)
         }
@@ -58,10 +66,28 @@ class TakePictureFragment : Fragment() {
             openGallery(it)
         }
         view.findViewById<Button>(R.id.button_process).setOnClickListener {
-            TODO("NOT IMPLEMENT")
+            goProcess()
         }
 
         return view
+    }
+
+
+    private fun goProcess(){
+        val account = GoogleSignIn.getLastSignedInAccount(requireActivity())
+        if(account != null){
+            if (currentPhotoPath != null){
+                Intent(requireContext(), ProcessActivity::class.java).also {
+                    it.putExtra("EXTRA_PHOTO_PATH", currentPhotoPath)
+                    startActivity(it)
+                }
+            }else{
+                Toast.makeText(requireContext(), "Need a photo", Toast.LENGTH_LONG).show()
+            }
+        }else{
+            Toast.makeText(requireContext(), "Need a google account", Toast.LENGTH_LONG).show()
+        }
+
     }
 
 
@@ -79,7 +105,7 @@ class TakePictureFragment : Fragment() {
                 1000
             )
         } else {
-            Log.d("DB", "PERMISSION GRANTED")
+            Log.d("setupPermissions", "PERMISSION GRANTED")
         }
     }
 
@@ -110,16 +136,31 @@ class TakePictureFragment : Fragment() {
                 }
                 // Continue only if the File was successfully created
                 photoFile?.also {
-                    val photoURI: Uri = FileProvider.getUriForFile(
+                    photoUri = FileProvider.getUriForFile(
                         requireActivity(),
                         "com.pzpg.org.fileprovider",
                         it
                     )
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
                     startActivityForResult(takePictureIntent, REQUEST_CAMERA_PHOTO)
                 }
             }
         }
+    }
+
+    private fun editPhoto(view: View){
+        /*if(photoUri != null) {
+            Intent(Intent.ACTION_EDIT).also { editPhoto ->
+                editPhoto.setDataAndType(photoUri, "image/*");
+                editPhoto.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                editPhoto.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                startActivity(Intent.createChooser(editPhoto, null));
+            }
+        }*/
+
+         */
+
+        Toast.makeText(requireContext(), "Click on image", Toast.LENGTH_SHORT).show()
     }
 
     private fun openGallery(view: View){
@@ -135,17 +176,37 @@ class TakePictureFragment : Fragment() {
         Log.d(TAG, "onActivityResult")
 
         if (requestCode == REQUEST_CAMERA_PHOTO && resultCode == AppCompatActivity.RESULT_OK) {
-
-            val file = File(currentPhotoPath)
-            val imageBitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, Uri.fromFile(file))
-            imageView.setImageBitmap(imageBitmap)
-            viewModel.image = imageBitmap
-        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == AppCompatActivity.RESULT_OK){
-            val imageURI: Uri? = data?.data as Uri
-            if (imageURI != null) {
-                val imageBitmap = MediaStore.Images.Media.getBitmap(requireActivity().contentResolver, imageURI)
+            if (currentPhotoPath != null) {
+                val file = File(currentPhotoPath!!)
+                val imageBitmap = MediaStore.Images.Media.getBitmap(
+                    requireActivity().contentResolver,
+                    Uri.fromFile(file)
+                )
                 imageView.setImageBitmap(imageBitmap)
                 viewModel.image = imageBitmap
+            }
+        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == AppCompatActivity.RESULT_OK){
+            val imageURI: Uri? = data?.data as Uri
+            val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
+            if (imageURI != null) {
+
+                val cursor: Cursor? = requireActivity().contentResolver.query(
+                    imageURI,
+                    filePathColumn, null, null, null
+                )
+
+                if (cursor != null) {
+                    cursor.moveToFirst()
+                    val columnIndex: Int = cursor.getColumnIndex(filePathColumn[0])
+                    val picturePath: String = cursor.getString(columnIndex)
+                    imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath))
+                    cursor.close()
+                    currentPhotoPath = picturePath
+                    Log.i("REQUEST_GALLERY_PHOTO", picturePath)
+                }
+
+
+
             }
         }
     }

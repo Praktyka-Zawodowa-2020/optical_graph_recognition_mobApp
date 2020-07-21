@@ -144,7 +144,6 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
             // Signed in successfully, show authenticated UI.
             Log.d("Sign in", "signInResult:succeeded")
             updateUI(myAccount)
-            getToken(myAccount)
 
             // Call Optical Graph Server Api and authorize it aswell
            //AuthorizeRequest().execute(account)
@@ -159,7 +158,7 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
         }
     }
 
-    private fun getToken(account: GoogleSignInAccount?)
+    private fun getToken(account: GoogleSignInAccount)
     {
         Log.i("getToken", "getToken IN")
         val sharedPref = getSharedPreferences(getString(R.string.user_preferences) ,Context.MODE_PRIVATE)

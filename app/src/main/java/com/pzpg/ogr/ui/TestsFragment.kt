@@ -38,19 +38,7 @@ class TestsFragment : Fragment() {
     }
 
     private fun getUsersRequest(){
-        val textView: TextView = requireView().findViewById(R.id.textView3)
 
-        val sharedPref = requireActivity().getSharedPreferences(getString(R.string.user_preferences), Context.MODE_PRIVATE)
-        val jwtToken = sharedPref!!.getString(getString(R.string.jwtToken), null)
-
-        if (jwtToken != null){
-            CoroutineScope(Dispatchers.Main).launch{
-                val users = RequestServer(getString(R.string.url_server)).getUsers(jwtToken)
-                Log.i(TAG, users.toString())
-
-                textView.text = users?.get(0).toString()
-            }
-        }
     }
 
 }
