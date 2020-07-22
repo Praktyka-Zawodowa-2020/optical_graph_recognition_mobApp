@@ -4,10 +4,12 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.StrictMode
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -110,12 +113,12 @@ class TakePictureFragment : Fragment() {
     }
 
     @Throws(IOException::class)
-    private fun createImageFile(): File {
+    private fun createImageFile(prefix: String, extension: String): File {
         // Create an image file name
         val storageDir: File? = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
-            "JPEG_test_", /* prefix */
-            ".jpg", /* suffix */
+            prefix, /* prefix */
+            extension, /* suffix */
             storageDir /* directory */
         ).apply {
             // Save a file: path for use with ACTION_VIEW intents
@@ -129,7 +132,7 @@ class TakePictureFragment : Fragment() {
             takePictureIntent.resolveActivity(requireActivity().packageManager)?.also {
                 // Create the File where the photo should go
                 val photoFile: File? = try {
-                    createImageFile()
+                    createImageFile("photo_", ".jpg")
                 } catch (ex: IOException) {
                     // Error occurred while creating the File
                     null
@@ -159,6 +162,29 @@ class TakePictureFragment : Fragment() {
         }*/
 
          */
+        val builder: StrictMode.VmPolicy.Builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
+        val newFile = createImageFile("edit_", ".jpg")
+        newFile.also {
+            photoUri = FileProvider.getUriForFile(
+                requireActivity(),
+                "com.pzpg.org.fileprovider",
+                it
+            )}
+
+
+
+        if(photoUri != null) {
+
+            Log.i("editPhoto", photoUri.toString())
+            Intent(Intent.ACTION_EDIT, MediaStore.Images.Media.INTERNAL_CONTENT_URI).also { editPhoto ->
+                editPhoto.setDataAndType(photoUri, "image/*");
+                editPhoto.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                editPhoto.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(newFile))
+                editPhoto.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+                startActivity(Intent.createChooser(editPhoto, null));
+            }
+        }
 
         Toast.makeText(requireContext(), "Click on image", Toast.LENGTH_SHORT).show()
     }
@@ -168,6 +194,23 @@ class TakePictureFragment : Fragment() {
             pickPictureGallery.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             startActivityForResult(pickPictureGallery, REQUEST_GALLERY_PHOTO);
         }
+    }
+
+    fun getRealPathFromURI(contentURI: Uri?): String? {
+        val projection =
+            arrayOf(MediaStore.Images.Media.DATA)
+        val cursor: Cursor = requireActivity().managedQuery(
+            contentURI, projection, null,
+            null, null
+        )
+            ?: return null
+        val column_index = cursor
+            .getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+        return if (cursor.moveToFirst()) {
+            // cursor.close();
+            cursor.getString(column_index)
+        } else null
+        // cursor.close();
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -189,6 +232,15 @@ class TakePictureFragment : Fragment() {
             val imageURI: Uri? = data?.data as Uri
             val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
             if (imageURI != null) {
+                val realPath = getRealPathFromURI(imageURI)
+                Log.i("REQUEST_GALLERY_PHOTO",realPath.toString())
+                val pickPhoto = File(realPath)
+
+                //val pickPhoto = File(imageURI.toString())
+                val newFile = createImageFile("gallery_", ".jpg")
+                pickPhoto.copyTo(newFile, overwrite = true)
+                photoUri = newFile.toUri()
+
 
                 val cursor: Cursor? = requireActivity().contentResolver.query(
                     imageURI,

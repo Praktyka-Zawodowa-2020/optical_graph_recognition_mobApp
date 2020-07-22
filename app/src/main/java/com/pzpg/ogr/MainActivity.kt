@@ -66,8 +66,6 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-
-
     fun signIn(view: View){
 
         Intent(this, SignInFragmentActivity::class.java).also { signInActivity ->
@@ -83,7 +81,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(graphActivity)
         }
     }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
