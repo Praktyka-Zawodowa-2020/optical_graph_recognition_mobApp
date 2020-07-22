@@ -8,3 +8,5 @@ const val REQUEST_SIGN_OUT = 4
 
 const val REQUEST_SIGN_IN_SETTING = 5
 const val REQUEST_SIGN_OUT_SETTING = 6
+
+const val EDIT_INTENT = 7

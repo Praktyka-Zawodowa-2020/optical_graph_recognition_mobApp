@@ -3,13 +3,11 @@ package com.pzpg.ogr.ui.takePicture
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.os.StrictMode
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -26,10 +24,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.pzpg.ogr.ProcessActivity
-import com.pzpg.ogr.R
-import com.pzpg.ogr.REQUEST_CAMERA_PHOTO
-import com.pzpg.ogr.REQUEST_GALLERY_PHOTO
+import com.pzpg.ogr.*
 import java.io.File
 import java.io.IOException
 
@@ -152,39 +147,26 @@ class TakePictureFragment : Fragment() {
     }
 
     private fun editPhoto(view: View){
-        /*if(photoUri != null) {
-            Intent(Intent.ACTION_EDIT).also { editPhoto ->
-                editPhoto.setDataAndType(photoUri, "image/*");
-                editPhoto.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                editPhoto.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                startActivity(Intent.createChooser(editPhoto, null));
-            }
-        }*/
 
-         */
-        val builder: StrictMode.VmPolicy.Builder = StrictMode.VmPolicy.Builder()
-        StrictMode.setVmPolicy(builder.build())
-        val newFile = createImageFile("edit_", ".jpg")
-        newFile.also {
-            photoUri = FileProvider.getUriForFile(
-                requireActivity(),
-                "com.pzpg.org.fileprovider",
-                it
-            )}
+        // Code taken from answer on http://stackoverflow.com/questions/15699299/android-edit-image-intent
+        val flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
 
+        val editIntent = Intent(Intent.ACTION_EDIT)
+        editIntent.setDataAndType(photoUri, "image/*")
+        editIntent.addFlags(flags)
+        editIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
 
+        // This work-around allows the intent to access our private FileProvider storage.
+        // Code taken from http://stackoverflow.com/questions/24835364/android-open-private-file-with-third-party-app
 
-        if(photoUri != null) {
-
-            Log.i("editPhoto", photoUri.toString())
-            Intent(Intent.ACTION_EDIT, MediaStore.Images.Media.INTERNAL_CONTENT_URI).also { editPhoto ->
-                editPhoto.setDataAndType(photoUri, "image/*");
-                editPhoto.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-                editPhoto.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(newFile))
-                editPhoto.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
-                startActivity(Intent.createChooser(editPhoto, null));
-            }
+        val resInfoList: List<ResolveInfo> = requireActivity().packageManager
+            .queryIntentActivities(editIntent, PackageManager.MATCH_DEFAULT_ONLY)
+        for (resolveInfo in resInfoList) {
+            val packageName: String = resolveInfo.activityInfo.packageName
+            requireActivity().grantUriPermission(packageName, photoUri, flags)
         }
+
+        startActivityForResult(Intent.createChooser(editIntent, null), EDIT_INTENT)
 
         Toast.makeText(requireContext(), "Click on image", Toast.LENGTH_SHORT).show()
     }
@@ -230,7 +212,7 @@ class TakePictureFragment : Fragment() {
             }
         }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == AppCompatActivity.RESULT_OK){
             val imageURI: Uri? = data?.data as Uri
-            val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
+
             if (imageURI != null) {
                 val realPath = getRealPathFromURI(imageURI)
                 Log.i("REQUEST_GALLERY_PHOTO",realPath.toString())
@@ -238,29 +220,15 @@ class TakePictureFragment : Fragment() {
 
                 //val pickPhoto = File(imageURI.toString())
                 val newFile = createImageFile("gallery_", ".jpg")
+
                 pickPhoto.copyTo(newFile, overwrite = true)
                 photoUri = newFile.toUri()
 
-
-                val cursor: Cursor? = requireActivity().contentResolver.query(
-                    imageURI,
-                    filePathColumn, null, null, null
-                )
-
-                if (cursor != null) {
-                    cursor.moveToFirst()
-                    val columnIndex: Int = cursor.getColumnIndex(filePathColumn[0])
-                    val picturePath: String = cursor.getString(columnIndex)
-                    imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath))
-                    cursor.close()
-                    currentPhotoPath = picturePath
-                    Log.i("REQUEST_GALLERY_PHOTO", picturePath)
-                }
-
-
-
             }
+        }else if(requestCode == EDIT_INTENT){
+
         }
+
     }
 
     override fun onDestroy() {
