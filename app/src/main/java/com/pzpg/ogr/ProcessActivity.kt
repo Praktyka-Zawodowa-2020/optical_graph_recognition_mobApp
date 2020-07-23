@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.view.View.VISIBLE
@@ -14,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -28,7 +30,7 @@ class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
     private var account: GoogleSignInAccount? = null
     private var requestManager : RequestManager? = null
-    private var graphFile: File? = null
+    private var uriGraph: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,9 +62,9 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    private fun createImageFile(): File {
+    private fun createGraphFile(): File {
         // Create an image file name
-        val storageDir: File? = getExternalFilesDir("graph")
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
         return File.createTempFile(
             "graph_",
             ".gml",
@@ -81,6 +83,8 @@ class ProcessActivity : AppCompatActivity() {
         processButton.isEnabled = false
         val fileToProcess: File? = File(photoPath!!)
 
+        val currentActivity = this
+
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
 
@@ -97,7 +101,15 @@ class ProcessActivity : AppCompatActivity() {
                 if(guid != null){
                     val file = requestManager!!.getImage(guid)
                     if (file != null){
-                        graphFile = createImageFile()
+                        val graphFile = createGraphFile()
+                        uriGraph = FileProvider.getUriForFile(
+                            currentActivity,
+                            "com.pzpg.org.fileprovider",
+                            graphFile
+                        )
+
+
+
                         file.copyTo(graphFile!!, overwrite=true)
                         file.delete()
                     }
@@ -111,29 +123,33 @@ class ProcessActivity : AppCompatActivity() {
     }
 
     fun share(view: View){
-        val uriFile = Uri.fromFile(graphFile)
         val shareIntent = Intent(Intent.ACTION_SEND)
 
 
-        shareIntent.putExtra(Intent.EXTRA_STREAM,uriFile)
+        val graphFile = File(uriGraph.toString())
+
+        val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+        shareIntent.putExtra(Intent.EXTRA_STREAM,uriGraph)
         shareIntent.type = "application/xml"
-        shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile!!.name);
+        shareIntent.flags = flags
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);
         shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via app");
 
+        val chooser = Intent.createChooser(shareIntent, null)
+
         val resInfoList: List<ResolveInfo> = packageManager
-            .queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            .queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
         for (resolveInfo in resInfoList) {
             val packageName: String = resolveInfo.activityInfo.packageName
-            grantUriPermission(packageName, uriFile,  Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            grantUriPermission(packageName, uriGraph, flags)
         }
 
-
-        startActivity(Intent.createChooser(shareIntent, null))
+        startActivity(chooser)
     }
 
     fun openGraph(view: View){
-        val uriFile = Uri.fromFile(graphFile)
+        val uriFile = uriGraph
         uriFile?.let {
             Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
                 graphActivity.data = uriFile
