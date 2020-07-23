@@ -1,6 +1,9 @@
 package com.pzpg.ogr
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -30,7 +33,7 @@ class ProcessActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process)
-
+        requestManager = RequestManager(this)
         supportActionBar?.title = "Process";
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
         val path = intent.getStringExtra("EXTRA_PHOTO_PATH")
@@ -44,7 +47,7 @@ class ProcessActivity : AppCompatActivity() {
             fileToProcess = File(path)
             textViewNmae.text = fileToProcess.name
             photoPath = path
-            requestManager = RequestManager(this)
+
             account = myAccount
 
             Glide.with(this)
@@ -70,12 +73,6 @@ class ProcessActivity : AppCompatActivity() {
 
     fun process(view: View){
 
-        /*val splits = photoPath.split('/')
-        val dir = splits.slice(0..(splits.size-2))
-        val dirString = dir.joinToString(postfix = "/", separator = "/")
-
-        val photoName = splits.takeLast(1)[0]*/
-
         val textInfo = findViewById<TextView>(R.id.textView_graphInfo)
         val processButton = findViewById<Button>(R.id.button_process)
         val openButton = findViewById<Button>(R.id.button_openGraph)
@@ -84,10 +81,16 @@ class ProcessActivity : AppCompatActivity() {
         processButton.isEnabled = false
         val fileToProcess: File? = File(photoPath!!)
 
-
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
-                val guid = requestManager!!.processImage(fileToProcess.path, fileToProcess.name)
+
+                Log.i("process",fileToProcess.parentFile.absolutePath )
+                Log.i("process",fileToProcess.name )
+                Log.i("process",requestManager.toString() )
+
+                val dir = fileToProcess.parentFile?.absolutePath
+
+                val guid = requestManager?.processImage(dir!!, fileToProcess.name)
                 textInfo.text = guid
                 finishContainer.visibility = VISIBLE
                 openButton.isEnabled = false
@@ -107,13 +110,35 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    fun openGraph(view: View){
-        Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
-            graphActivity.putExtra("EXTRA_GRAPH_NAME", graphFile!!.name)
-            graphActivity.putExtra("EXTRA_GRAPH_EXTENSION", "gml")
-            startActivity(graphActivity)
+    fun share(view: View){
+        val uriFile = Uri.fromFile(graphFile)
+        val shareIntent = Intent(Intent.ACTION_SEND)
+
+
+        shareIntent.putExtra(Intent.EXTRA_STREAM,uriFile)
+        shareIntent.type = "application/xml"
+        shareIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile!!.name);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via app");
+
+        val resInfoList: List<ResolveInfo> = packageManager
+            .queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY)
+        for (resolveInfo in resInfoList) {
+            val packageName: String = resolveInfo.activityInfo.packageName
+            grantUriPermission(packageName, uriFile,  Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+
+
+        startActivity(Intent.createChooser(shareIntent, null))
     }
 
-
+    fun openGraph(view: View){
+        val uriFile = Uri.fromFile(graphFile)
+        uriFile?.let {
+            Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
+                graphActivity.data = uriFile
+                startActivity(graphActivity)
+            }
+        }
+    }
 }

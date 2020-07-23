@@ -8,6 +8,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,19 +21,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.pzpg.ogr.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 
 
 class TakePictureFragment : Fragment() {
@@ -43,6 +41,8 @@ class TakePictureFragment : Fragment() {
     private lateinit var imageView: ImageView
     private var currentPhotoPath: String? = null
     private var photoUri: Uri? = null
+
+    private lateinit var inputPFD: ParcelFileDescriptor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,15 +131,8 @@ class TakePictureFragment : Fragment() {
 
     @Throws(IOException::class)
     private fun createImageFile(prefix: String, extension: String): File {
-        // Create an image file name
-        val storageDir: File? =
-            requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            prefix, /* prefix */
-            extension, /* suffix */
-            storageDir /* directory */
-        ).apply {
-            // Save a file: path for use with ACTION_VIEW intents
+        val storageDir: File? = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(prefix,extension,storageDir).apply {
             currentPhotoPath = absolutePath
         }
     }
@@ -150,6 +143,7 @@ class TakePictureFragment : Fragment() {
                 val photoFile: File? = try {
                     createImageFile("photo_", ".jpg")
                 } catch (ex: IOException) {
+                    Log.i("EXCEPTION", ex.toString())
                     null
                 }
 
@@ -159,6 +153,7 @@ class TakePictureFragment : Fragment() {
                         "com.pzpg.org.fileprovider",
                         it
                     )
+
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
                     startActivityForResult(takePictureIntent, REQUEST_CAMERA_PHOTO)
                 }
@@ -205,8 +200,7 @@ class TakePictureFragment : Fragment() {
     }
 
     private fun getRealPathFromURI(contentURI: Uri?): String? {
-        val projection =
-            arrayOf(MediaStore.Images.Media.DATA)
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
         val cursor: Cursor = requireActivity().managedQuery(
             contentURI, projection, null,
             null, null
@@ -242,41 +236,48 @@ class TakePictureFragment : Fragment() {
                 if (resultCode == AppCompatActivity.RESULT_OK) {
                     val imageURI: Uri? = data?.data as Uri
                     if (imageURI != null) {
-                        val realPath = getRealPathFromURI(imageURI)
-                        Log.i("REQUEST_GALLERY_PHOTO", realPath.toString())
-                        val pickPhoto = File(realPath!!)
 
-                        //val pickPhoto = File(imageURI.toString())
-                        val newFile = createImageFile("gallery_", ".jpg")
+                        val destinationFile: File? = try {
+                            createImageFile("gallery_", ".jpg")
+                        }catch (e: IOException){
+                            Log.e("Creating file", e.toString())
+                            null
+                        }
 
-                        pickPhoto.copyTo(newFile, overwrite = true)
-                        //photoUri = newFile.toUri()
-                        photoUri = FileProvider.getUriForFile(
-                            requireContext(),
-                            "com.pzpg.org.fileprovider",
-                            newFile
-                        )
-                        setImage(photoUri!!)
+                        destinationFile?.also {
+                            photoUri = FileProvider.getUriForFile(
+                                requireActivity(),
+                                "com.pzpg.org.fileprovider",
+                                it
+                            )
+
+
+
+                            val source = requireActivity().contentResolver.openInputStream(imageURI)
+                            val destination: OutputStream = FileOutputStream(destinationFile)
+
+                            val buffer = ByteArray(1024)
+                            var length: Int
+
+                            while (source!!.read(buffer).also { length = it } > 0) {
+                                destination.write(buffer, 0, length)
+                            }
+
+                            source.close()
+                            destination.close()
+
+
+                            setImage(photoUri!!)
+                        }
                     }
                 }
             }
             EDIT_INTENT -> {
                 if (resultCode == AppCompatActivity.RESULT_OK) {
-                    val imageURI: Uri? = data?.data
-                    if (imageURI != null) {
-                        photoUri = imageURI
-                        setImage(imageURI)
-                    } else {
+                    if(photoUri != null)
                         setImage(photoUri!!)
-                    }
                 }
             }
         }
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.i(TAG, "onDestroy")
-    }
-
 }
