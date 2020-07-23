@@ -3,13 +3,11 @@ package com.pzpg.ogr.ui.takePicture
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.database.Cursor
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.os.StrictMode
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,11 +23,14 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.pzpg.ogr.ProcessActivity
-import com.pzpg.ogr.R
-import com.pzpg.ogr.REQUEST_CAMERA_PHOTO
-import com.pzpg.ogr.REQUEST_GALLERY_PHOTO
+import com.pzpg.ogr.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 
@@ -39,7 +40,7 @@ class TakePictureFragment : Fragment() {
     private val TAG = "TakePictureFragment"
     private lateinit var viewModel: TakePictureViewModel
 
-    private lateinit var  imageView: ImageView
+    private lateinit var imageView: ImageView
     private var currentPhotoPath: String? = null
     private var photoUri: Uri? = null
 
@@ -59,7 +60,7 @@ class TakePictureFragment : Fragment() {
         imageView.setImageBitmap(viewModel.image)
 
 
-        imageView.setOnClickListener{
+        imageView.setOnClickListener {
             editPhoto(it)
         }
         view.findViewById<Button>(R.id.button_camera).setOnClickListener {
@@ -75,29 +76,45 @@ class TakePictureFragment : Fragment() {
         return view
     }
 
+    private fun setImage(uri: Uri) {
+        Glide.with(this)
+            .load(uri)
+            .diskCacheStrategy(DiskCacheStrategy.NONE )
+            .skipMemoryCache(true)
+            .into(imageView)
+    }
 
-    private fun goProcess(){
+
+    private fun goProcess() {
         val account = GoogleSignIn.getLastSignedInAccount(requireActivity())
-        if(account != null){
-            if (currentPhotoPath != null){
+        if (account != null) {
+            if (photoUri != null) {
                 Intent(requireContext(), ProcessActivity::class.java).also {
                     it.putExtra("EXTRA_PHOTO_PATH", currentPhotoPath)
                     startActivity(it)
                 }
-            }else{
+            } else {
                 Toast.makeText(requireContext(), "Need a photo", Toast.LENGTH_LONG).show()
             }
-        }else{
+        } else {
             Toast.makeText(requireContext(), "Need a google account", Toast.LENGTH_LONG).show()
         }
-
     }
 
 
-    private fun setupPermissions(){
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED &&
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED &&
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
+    private fun setupPermissions() {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_DENIED &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_DENIED &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_DENIED
         ) {
             requestPermissions(
                 requireActivity(), arrayOf(
@@ -115,7 +132,8 @@ class TakePictureFragment : Fragment() {
     @Throws(IOException::class)
     private fun createImageFile(prefix: String, extension: String): File {
         // Create an image file name
-        val storageDir: File? = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val storageDir: File? =
+            requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
             prefix, /* prefix */
             extension, /* suffix */
@@ -126,18 +144,15 @@ class TakePictureFragment : Fragment() {
         }
     }
 
-    private fun takePhoto(view: View){
+    private fun takePhoto(view: View) {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
-            // Ensure that there's a camera activity to handle the intent
             takePictureIntent.resolveActivity(requireActivity().packageManager)?.also {
-                // Create the File where the photo should go
                 val photoFile: File? = try {
                     createImageFile("photo_", ".jpg")
                 } catch (ex: IOException) {
-                    // Error occurred while creating the File
                     null
                 }
-                // Continue only if the File was successfully created
+
                 photoFile?.also {
                     photoUri = FileProvider.getUriForFile(
                         requireActivity(),
@@ -151,52 +166,45 @@ class TakePictureFragment : Fragment() {
         }
     }
 
-    private fun editPhoto(view: View){
-        /*if(photoUri != null) {
-            Intent(Intent.ACTION_EDIT).also { editPhoto ->
-                editPhoto.setDataAndType(photoUri, "image/*");
-                editPhoto.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                editPhoto.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                startActivity(Intent.createChooser(editPhoto, null));
+    private fun editPhoto(view: View) {
+        if(photoUri != null){
+            // Code taken from answer on http://stackoverflow.com/questions/15699299/android-edit-image-intent
+            val flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+            val editIntent = Intent(Intent.ACTION_EDIT)
+            editIntent.setDataAndType(photoUri, "image/*")
+            editIntent.addFlags(flags)
+            editIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+
+            // This work-around allows the intent to access our private FileProvider storage.
+            // Code taken from http://stackoverflow.com/questions/24835364/android-open-private-file-with-third-party-app
+
+            val resInfoList: List<ResolveInfo> = requireActivity().packageManager
+                .queryIntentActivities(editIntent, PackageManager.MATCH_DEFAULT_ONLY)
+            for (resolveInfo in resInfoList) {
+                val packageName: String = resolveInfo.activityInfo.packageName
+                requireActivity().grantUriPermission(packageName, photoUri, flags)
             }
-        }*/
-
-         */
-        val builder: StrictMode.VmPolicy.Builder = StrictMode.VmPolicy.Builder()
-        StrictMode.setVmPolicy(builder.build())
-        val newFile = createImageFile("edit_", ".jpg")
-        newFile.also {
-            photoUri = FileProvider.getUriForFile(
-                requireActivity(),
-                "com.pzpg.org.fileprovider",
-                it
-            )}
-
-
-
-        if(photoUri != null) {
-
-            Log.i("editPhoto", photoUri.toString())
-            Intent(Intent.ACTION_EDIT, MediaStore.Images.Media.INTERNAL_CONTENT_URI).also { editPhoto ->
-                editPhoto.setDataAndType(photoUri, "image/*");
-                editPhoto.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
-                editPhoto.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(newFile))
-                editPhoto.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
-                startActivity(Intent.createChooser(editPhoto, null));
-            }
+            startActivityForResult(Intent.createChooser(editIntent, null), EDIT_INTENT)
+        }else{
+            Toast.makeText(requireContext(), "Need a photo", Toast.LENGTH_SHORT).show()
         }
-
-        Toast.makeText(requireContext(), "Click on image", Toast.LENGTH_SHORT).show()
     }
 
-    private fun openGallery(view: View){
-        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).also { pickPictureGallery->
+    private fun openGallery(view: View) {
+        Intent(
+            Intent.ACTION_PICK,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        ).also { pickPictureGallery ->
             pickPictureGallery.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            startActivityForResult(pickPictureGallery, REQUEST_GALLERY_PHOTO);
+            startActivityForResult(
+                Intent.createChooser(pickPictureGallery, null),
+                REQUEST_GALLERY_PHOTO
+            );
         }
     }
 
-    fun getRealPathFromURI(contentURI: Uri?): String? {
+    private fun getRealPathFromURI(contentURI: Uri?): String? {
         val projection =
             arrayOf(MediaStore.Images.Media.DATA)
         val cursor: Cursor = requireActivity().managedQuery(
@@ -207,10 +215,8 @@ class TakePictureFragment : Fragment() {
         val column_index = cursor
             .getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
         return if (cursor.moveToFirst()) {
-            // cursor.close();
             cursor.getString(column_index)
         } else null
-        // cursor.close();
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -218,47 +224,52 @@ class TakePictureFragment : Fragment() {
 
         Log.d(TAG, "onActivityResult")
 
-        if (requestCode == REQUEST_CAMERA_PHOTO && resultCode == AppCompatActivity.RESULT_OK) {
-            if (currentPhotoPath != null) {
-                val file = File(currentPhotoPath!!)
-                val imageBitmap = MediaStore.Images.Media.getBitmap(
-                    requireActivity().contentResolver,
-                    Uri.fromFile(file)
-                )
-                imageView.setImageBitmap(imageBitmap)
-                viewModel.image = imageBitmap
-            }
-        }else if (requestCode == REQUEST_GALLERY_PHOTO && resultCode == AppCompatActivity.RESULT_OK){
-            val imageURI: Uri? = data?.data as Uri
-            val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
-            if (imageURI != null) {
-                val realPath = getRealPathFromURI(imageURI)
-                Log.i("REQUEST_GALLERY_PHOTO",realPath.toString())
-                val pickPhoto = File(realPath)
-
-                //val pickPhoto = File(imageURI.toString())
-                val newFile = createImageFile("gallery_", ".jpg")
-                pickPhoto.copyTo(newFile, overwrite = true)
-                photoUri = newFile.toUri()
-
-
-                val cursor: Cursor? = requireActivity().contentResolver.query(
-                    imageURI,
-                    filePathColumn, null, null, null
-                )
-
-                if (cursor != null) {
-                    cursor.moveToFirst()
-                    val columnIndex: Int = cursor.getColumnIndex(filePathColumn[0])
-                    val picturePath: String = cursor.getString(columnIndex)
-                    imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath))
-                    cursor.close()
-                    currentPhotoPath = picturePath
-                    Log.i("REQUEST_GALLERY_PHOTO", picturePath)
+        when (requestCode) {
+            REQUEST_CAMERA_PHOTO -> {
+                if (resultCode == AppCompatActivity.RESULT_OK) {
+                    if (currentPhotoPath != null) {
+                        val file = File(currentPhotoPath!!)
+                        val imageBitmap = MediaStore.Images.Media.getBitmap(
+                            requireActivity().contentResolver,
+                            Uri.fromFile(file)
+                        )
+                        imageView.setImageBitmap(imageBitmap)
+                        viewModel.image = imageBitmap
+                    }
                 }
+            }
+            REQUEST_GALLERY_PHOTO -> {
+                if (resultCode == AppCompatActivity.RESULT_OK) {
+                    val imageURI: Uri? = data?.data as Uri
+                    if (imageURI != null) {
+                        val realPath = getRealPathFromURI(imageURI)
+                        Log.i("REQUEST_GALLERY_PHOTO", realPath.toString())
+                        val pickPhoto = File(realPath!!)
 
+                        //val pickPhoto = File(imageURI.toString())
+                        val newFile = createImageFile("gallery_", ".jpg")
 
-
+                        pickPhoto.copyTo(newFile, overwrite = true)
+                        //photoUri = newFile.toUri()
+                        photoUri = FileProvider.getUriForFile(
+                            requireContext(),
+                            "com.pzpg.org.fileprovider",
+                            newFile
+                        )
+                        setImage(photoUri!!)
+                    }
+                }
+            }
+            EDIT_INTENT -> {
+                if (resultCode == AppCompatActivity.RESULT_OK) {
+                    val imageURI: Uri? = data?.data
+                    if (imageURI != null) {
+                        photoUri = imageURI
+                        setImage(imageURI)
+                    } else {
+                        setImage(photoUri!!)
+                    }
+                }
             }
         }
     }

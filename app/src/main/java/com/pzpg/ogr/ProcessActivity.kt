@@ -6,9 +6,12 @@ import android.util.Log
 import android.view.View
 import android.view.View.VISIBLE
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.api.RequestManager
@@ -17,50 +20,61 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.nio.channels.FileChannel
 
 class ProcessActivity : AppCompatActivity() {
-    private lateinit var photoPath: String
-    private lateinit var account: GoogleSignInAccount
-    private lateinit var requestManager : RequestManager
-    private lateinit var graphFile: File
+    private var photoPath: String? = null
+    private var account: GoogleSignInAccount? = null
+    private var requestManager : RequestManager? = null
+    private var graphFile: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process)
 
         supportActionBar?.title = "Process";
+        val myAccount = GoogleSignIn.getLastSignedInAccount(this)
+        val path = intent.getStringExtra("EXTRA_PHOTO_PATH")
+        var fileToProcess: File? = null
 
-        photoPath = intent.getStringExtra("EXTRA_PHOTO_PATH")!!
-        account = GoogleSignIn.getLastSignedInAccount(this)!!
+        if(path != null && myAccount != null){
 
-        Log.i("ProcessActivity",photoPath)
-        Log.i("ProcessActivity",account.toString() )
+            val imageView: ImageView = findViewById(R.id.imageView2)
+            val textViewNmae: TextView = findViewById(R.id.textView_photoName)
 
-        requestManager = RequestManager(this)
+            fileToProcess = File(path)
+            textViewNmae.text = fileToProcess.name
+            photoPath = path
+            requestManager = RequestManager(this)
+            account = myAccount
 
+            Glide.with(this)
+                .load(path)
+                .into(imageView)
+
+        }else{
+            Toast.makeText(this, "Need a path to file", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
 
     private fun createImageFile(): File {
         // Create an image file name
         val storageDir: File? = getExternalFilesDir("graph")
         return File.createTempFile(
-            "graph_", /* prefix */
-            ".gml", /* suffix */
-            storageDir /* directory */
+            "graph_",
+            ".gml",
+            storageDir
         )
     }
 
 
     fun process(view: View){
 
-        val splits = photoPath.split('/')
+        /*val splits = photoPath.split('/')
         val dir = splits.slice(0..(splits.size-2))
         val dirString = dir.joinToString(postfix = "/", separator = "/")
 
-        val photoName = splits.takeLast(1)[0]
+        val photoName = splits.takeLast(1)[0]*/
 
         val textInfo = findViewById<TextView>(R.id.textView_graphInfo)
         val processButton = findViewById<Button>(R.id.button_process)
@@ -68,30 +82,34 @@ class ProcessActivity : AppCompatActivity() {
 
         val finishContainer = findViewById<ConstraintLayout>(R.id.finish_container)
         processButton.isEnabled = false
+        val fileToProcess: File? = File(photoPath!!)
+
 
         CoroutineScope(Dispatchers.Main).launch {
-            val guid = requestManager.processImage(dirString, photoName)
-            textInfo.text = guid
-            finishContainer.visibility = VISIBLE
-            openButton.isEnabled = false
-            if(guid != null){
-                val file = requestManager.getImage(guid)
-                if (file != null){
-                    graphFile = createImageFile()
-                    file.copyTo(graphFile, overwrite=true)
-                    file.delete()
+            fileToProcess?.also {
+                val guid = requestManager!!.processImage(fileToProcess.path, fileToProcess.name)
+                textInfo.text = guid
+                finishContainer.visibility = VISIBLE
+                openButton.isEnabled = false
+                if(guid != null){
+                    val file = requestManager!!.getImage(guid)
+                    if (file != null){
+                        graphFile = createImageFile()
+                        file.copyTo(graphFile!!, overwrite=true)
+                        file.delete()
+                    }
+                }else{
+                    Log.i("process", "guid = $guid")
                 }
-            }else{
-                Log.i("process", "guid = $guid")
-            }
 
-            openButton.isEnabled = true
+                openButton.isEnabled = true
+            }
         }
     }
 
     fun openGraph(view: View){
         Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
-            graphActivity.putExtra("EXTRA_GRAPH_NAME", graphFile.name)
+            graphActivity.putExtra("EXTRA_GRAPH_NAME", graphFile!!.name)
             graphActivity.putExtra("EXTRA_GRAPH_EXTENSION", "gml")
             startActivity(graphActivity)
         }
