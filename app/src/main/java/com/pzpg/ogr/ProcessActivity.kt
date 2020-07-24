@@ -2,6 +2,9 @@ package com.pzpg.ogr
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -28,14 +31,14 @@ class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
     private var account: GoogleSignInAccount? = null
     private var requestManager : RequestManager? = null
-    private var graphFile: File? = null
-    lateinit var thisActivity: Activity
+    private var uriGraph: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process)
         thisActivity = this
 
+        requestManager = RequestManager(this)
         supportActionBar?.title = "Process";
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
         val path = intent.getStringExtra("EXTRA_PHOTO_PATH")
@@ -49,7 +52,7 @@ class ProcessActivity : AppCompatActivity() {
             fileToProcess = File(path)
             textViewNmae.text = fileToProcess.name
             photoPath = path
-            requestManager = RequestManager(this)
+
             account = myAccount
 
             Glide.with(this)
@@ -84,6 +87,7 @@ class ProcessActivity : AppCompatActivity() {
         processButton.isEnabled = false
         val fileToProcess: File? = File(photoPath!!)
 
+        val currentActivity = this
 
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
@@ -111,7 +115,15 @@ class ProcessActivity : AppCompatActivity() {
                 if(guid != null){
                     val file = requestManager!!.getImage(guid)
                     if (file != null){
-                        graphFile = createImageFile()
+                        val graphFile = createGraphFile()
+                        uriGraph = FileProvider.getUriForFile(
+                            currentActivity,
+                            "com.pzpg.org.fileprovider",
+                            graphFile
+                        )
+
+
+
                         file.copyTo(graphFile!!, overwrite=true)
                         file.delete()
                     }
@@ -124,13 +136,38 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    fun openGraph(view: View){
-        Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
-            graphActivity.putExtra("EXTRA_GRAPH_NAME", graphFile!!.name)
-            graphActivity.putExtra("EXTRA_GRAPH_EXTENSION", "gml")
-            startActivity(graphActivity)
+    fun share(view: View){
+        val shareIntent = Intent(Intent.ACTION_SEND)
+
+        val graphFile = File(uriGraph.toString())
+
+        val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+        shareIntent.putExtra(Intent.EXTRA_STREAM,uriGraph)
+        shareIntent.type = "application/xml"
+        shareIntent.flags = flags
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via OGR");
+
+        val chooser = Intent.createChooser(shareIntent, null)
+
+        val resInfoList: List<ResolveInfo> = packageManager
+            .queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
+        for (resolveInfo in resInfoList) {
+            val packageName: String = resolveInfo.activityInfo.packageName
+            grantUriPermission(packageName, uriGraph, flags)
         }
+
+        startActivity(chooser)
     }
 
-
+    fun openGraph(view: View){
+        val uriFile = uriGraph
+        uriFile?.let {
+            Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
+                graphActivity.data = uriFile
+                startActivity(graphActivity)
+            }
+        }
+    }
 }
