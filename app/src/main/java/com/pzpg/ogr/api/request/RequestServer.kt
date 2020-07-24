@@ -19,6 +19,7 @@ class RequestServer(private val serverUrl: String){
 
     /**
      * Authorizes a user on the server to use the API
+     *
      * @param[account] a google account has GoogleSignInAccount type
      * @return JSONObject which has three keys "mail", "jwtToken" and "refreshToken"
      * this three keys have string value
@@ -55,6 +56,7 @@ class RequestServer(private val serverUrl: String){
 
     /**
      * Suspend method to refresh token method to refresh the access token "jwtToken" when the time of the token has expired
+     *
      * @param[rToken] refresh token which has string type
      * @return JSONObject which has three keys "mail", "jwtToken" and "refreshToken"
      * this three keys have string value
@@ -89,6 +91,7 @@ class RequestServer(private val serverUrl: String){
 
     /**
      * Suspend method to upload an image which will processed to the server
+     *
      * @param[dir] a directory where the image is located, has String type
      * @param[name] a name of the image has String type
      * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
@@ -124,6 +127,7 @@ class RequestServer(private val serverUrl: String){
 
     /**
      * Suspend method to process a image for graph recognition
+     *
      * @param[guid] a guid of the uploaded image which we want to process
      * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
      * @param[mode] a mode of the recognition
@@ -167,6 +171,7 @@ class RequestServer(private val serverUrl: String){
 
     /**
      * Suspend method to download a file which representations a graph which has been recognitions by the server
+     *
      * @param[guid] a guid of the uploaded image which we want to process
      * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
      * @param[format] recognized graph format which we want to take after processing
