@@ -4,7 +4,6 @@ import android.util.Log
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.*
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.pzpg.ogr.api.request.server_exception.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -45,7 +44,7 @@ class RequestServer(private val serverUrl: String){
             Log.i("authorize", response.statusCode.toString())
 
             when(response.statusCode){
-                200 -> return@withContext JSONObject(result.toString())
+                200 -> return@withContext JSONObject(result.get())
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
@@ -79,7 +78,7 @@ class RequestServer(private val serverUrl: String){
 
             Log.i("refreshToken", response.statusCode.toString())
             when(response.statusCode){
-                200 -> return@withContext JSONObject(result.toString())
+                200 -> return@withContext JSONObject(result.get())
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
@@ -111,7 +110,7 @@ class RequestServer(private val serverUrl: String){
                 .add(file)
                 .header(mapOf("authorization" to "Bearer $jwtToken"))
                 .responseString()
-            val resultToJson = JSONObject(result.toString())
+            val resultToJson = JSONObject(result.get())
             Log.i("uploadImage", response.statusCode.toString())
             when(response.statusCode){
                 200 -> return@withContext resultToJson.getString("guid")
