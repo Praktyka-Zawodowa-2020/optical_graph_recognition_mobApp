@@ -1,7 +1,9 @@
 package com.pzpg.ogr
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.view.View.VISIBLE
@@ -11,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -26,10 +29,12 @@ class ProcessActivity : AppCompatActivity() {
     private var account: GoogleSignInAccount? = null
     private var requestManager : RequestManager? = null
     private var graphFile: File? = null
+    lateinit var thisActivity: Activity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process)
+        thisActivity = this
 
         supportActionBar?.title = "Process";
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
@@ -57,24 +62,19 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    private fun createImageFile(): File {
+    private fun createGraphFile(): File {
         // Create an image file name
-        val storageDir: File? = getExternalFilesDir("graph")
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+        Log.i("createGraphFile", storageDir.toString())
         return File.createTempFile(
             "graph_",
-            ".gml",
+            ".graphml",
             storageDir
         )
     }
 
 
     fun process(view: View){
-
-        /*val splits = photoPath.split('/')
-        val dir = splits.slice(0..(splits.size-2))
-        val dirString = dir.joinToString(postfix = "/", separator = "/")
-
-        val photoName = splits.takeLast(1)[0]*/
 
         val textInfo = findViewById<TextView>(R.id.textView_graphInfo)
         val processButton = findViewById<Button>(R.id.button_process)
@@ -87,8 +87,25 @@ class ProcessActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
-                val guid = requestManager!!.processImage(fileToProcess.path, fileToProcess.name)
-                textInfo.text = guid
+
+                val graphTempFile = requestManager!!.processImage(fileToProcess.path, fileToProcess.name)
+                graphTempFile?.let { tempFile ->
+                    graphFile = createGraphFile()
+                    tempFile.copyTo(graphFile!!, overwrite=true)
+                    tempFile.delete()
+
+                    graphFile?.let { newFile ->
+                        FileProvider.getUriForFile(
+                            thisActivity,
+                            "com.pzpg.org.fileprovider",
+                            newFile
+                        )
+                    }
+                }
+
+                finishContainer.visibility = VISIBLE
+
+                /*textInfo.text = fileToProcess.name
                 finishContainer.visibility = VISIBLE
                 openButton.isEnabled = false
                 if(guid != null){
@@ -100,7 +117,7 @@ class ProcessActivity : AppCompatActivity() {
                     }
                 }else{
                     Log.i("process", "guid = $guid")
-                }
+                }*/
 
                 openButton.isEnabled = true
             }
