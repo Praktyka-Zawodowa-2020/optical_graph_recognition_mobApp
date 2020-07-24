@@ -1,4 +1,4 @@
-package com.pzpg.ogr.api.request.server_exception
+package com.pzpg.ogr.api.request
 
 import java.lang.Exception
 
