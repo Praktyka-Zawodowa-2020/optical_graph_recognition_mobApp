@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.pzpg.ogr">
 
     <uses-feature
@@ -40,7 +41,16 @@
             android:resource="@xml/network_security_config" />
 
         <activity android:name=".authorize_google.SignInFragmentActivity" />
-        <activity android:name=".graph.FruchtermanReingoldActivity" />
+        <activity
+            android:name=".graph.FruchtermanReingoldActivity"
+            android:exported="true">
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data  android:mimeType="text/plain"
+                    android:host="*" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".GraphActivity"
             android:theme="@style/AppTheme.NoActionBar" />

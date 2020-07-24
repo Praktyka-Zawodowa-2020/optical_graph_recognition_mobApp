@@ -1,5 +1,6 @@
 package com.pzpg.ogr
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.util.Xml
@@ -16,7 +17,6 @@ import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node
-import org.xmlpull.v1.XmlPullParserException
 import java.io.*
 
 
@@ -31,46 +31,17 @@ abstract class GraphActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_graph)
 
-        val fileName: String? = intent.getStringExtra("EXTRA_GRAPH_NAME")
-        val extension: String? = intent.getStringExtra("EXTRA_GRAPH_EXTENSION")
-
-        supportActionBar?.title = fileName;
-
+        val data = intent.data
         var graph: Graph? = null
-
-        try {
-            graph = if (fileName != null){
-                when(extension){
-                    "graphml", "gml" -> readGraphGraphml(fileName)
-                    "graph6", "g6" -> readGraphSix(fileName)
-                    else->{
-                        readGraphGraphml(fileName)
-                    }
-                }
-            } else {
-                createGraph()
-            }
-        }catch (e: XmlPullParserException){
-            graph = null
-            Log.d("EXCEPTION", e.toString())
-            finish()
-        }catch (e: FileNotFoundException){
-            graph = null
-            Log.d("EXCEPTION", e.toString())
-            finish()
+        data?.let {
+            graph = readGraphGraphml(it)
         }
 
-        graph?.also {
-            setupAdapter(it)
+        graph?.let {
+            setupAdapter(graph!!)
         }
-
-        //setupToolbar()
-        //setupFab(graph)
     }
 
-    private fun checkFileExist(name: String): Boolean{
-        return File(getExternalFilesDir("graph"), name).exists()
-    }
 
     /*private fun setupFab(graph: Graph) {
         val addButton = findViewById<FloatingActionButton>(R.id.addNode)
@@ -237,13 +208,12 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
-    fun readGraphGraphml(name: String): Graph{
-        val parser = XmlParser()
-        val storageDir: File? = getExternalFilesDir("graph")
-        val file: File = File(storageDir, name)
+    fun readGraphGraphml(uri: Uri): Graph?{
 
-        val graph = parser.parse(FileInputStream(file))
-        Log.d("NODES", "${graph.nodeCount}")
+        val inputStream = contentResolver.openInputStream(uri)
+        val parser = XmlParser()
+        val graph = inputStream?.let { parser.parse(it) }
+        Log.d("NODES", "${graph?.nodeCount}")
 
         return graph
     }
