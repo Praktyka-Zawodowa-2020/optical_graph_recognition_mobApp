@@ -125,7 +125,6 @@ class ProcessActivity : AppCompatActivity() {
     fun share(view: View){
         val shareIntent = Intent(Intent.ACTION_SEND)
 
-
         val graphFile = File(uriGraph.toString())
 
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -134,7 +133,7 @@ class ProcessActivity : AppCompatActivity() {
         shareIntent.type = "application/xml"
         shareIntent.flags = flags
         shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);
-        shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via app");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via OGR");
 
         val chooser = Intent.createChooser(shareIntent, null)
 

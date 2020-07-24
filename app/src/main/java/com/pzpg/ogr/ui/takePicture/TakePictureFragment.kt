@@ -176,6 +176,7 @@ class TakePictureFragment : Fragment() {
 
             val resInfoList: List<ResolveInfo> = requireActivity().packageManager
                 .queryIntentActivities(editIntent, PackageManager.MATCH_DEFAULT_ONLY)
+
             for (resolveInfo in resInfoList) {
                 val packageName: String = resolveInfo.activityInfo.packageName
                 requireActivity().grantUriPermission(packageName, photoUri, flags)
