@@ -6,6 +6,7 @@ import com.github.kittinunf.fuel.core.*
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
@@ -37,7 +38,7 @@ class RequestServer(private val serverUrl: String){
         msg.accumulate("authCode", account.serverAuthCode)
 
         return withContext(Dispatchers.IO) {
-            val (_, response, result) = Fuel.post(serverUrl + endpoint)
+            val (request, response, result) = Fuel.post(serverUrl + endpoint)
                 .header(Headers.CONTENT_TYPE to "application/json")
                 .body(msg.toString())
                 .responseString()
@@ -71,9 +72,9 @@ class RequestServer(private val serverUrl: String){
 
         return withContext(Dispatchers.IO) {
             val body = JSONObject()
-            body.accumulate("idToken", rToken)
+            body.accumulate("token", rToken)
 
-            val (_, response, result) = Fuel.post(serverUrl + endpoint)
+            val (request, response, result) = Fuel.post(serverUrl + endpoint)
                 .header(Headers.CONTENT_TYPE to "application/json")
                 .body(body.toString())
                 .responseString()
@@ -150,7 +151,7 @@ class RequestServer(private val serverUrl: String){
 
             val tempFile = File.createTempFile("temp", ".tmp")
 
-            val (_ , response, _) =  Fuel.download(serverUrl + endpoint + guid,
+            val (request, response, result) =  Fuel.download(serverUrl + endpoint + guid,
                 parameters = parameters, method=Method.POST)
                 .fileDestination{
                         _, _ -> tempFile
@@ -193,7 +194,7 @@ class RequestServer(private val serverUrl: String){
 
             val tempFile = File.createTempFile("temp", ".tmp")
 
-            val (_ , response, _) =  Fuel.download(serverUrl + endpoint + guid,
+            val (request, response, result) =  Fuel.download(serverUrl + endpoint + guid,
                 parameters = parameters)
                 .fileDestination{
                         _, _ -> tempFile
@@ -210,6 +211,27 @@ class RequestServer(private val serverUrl: String){
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
-
     }
+
+    suspend fun getHistory(jwtToken: String): JSONArray{
+        val endpoint = "/api/graphs/history"
+
+        return withContext(Dispatchers.IO){
+            val (request, response, result) = Fuel.get(serverUrl + endpoint)
+                .header(mapOf("authorization" to "Bearer $jwtToken"))
+                .responseString()
+
+            Log.i("getHistory", response.statusCode.toString())
+
+            when(response.statusCode){
+                200 -> return@withContext JSONArray(result.get())
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
+            }
+        }
+    }
+
+
 }

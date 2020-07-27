@@ -5,6 +5,7 @@ import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.R
 import com.pzpg.ogr.api.request.*
+import org.json.JSONArray
 import java.io.File
 
 /**
@@ -97,6 +98,22 @@ class RequestManager(val context: Context) {
             if (refreshed) processImage(path, name, mode, format)
             else null
         }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            null
+        }
+    }
+
+    suspend fun getHistory(): JSONArray?{
+        val jwtToken = tokenManager.getJwtToken()
+        return try{
+            RequestServer(context.getString(R.string.url_server))
+                .getHistory(jwtToken!!)
+        }catch (e: UnauthorizedException){
+            val refreshed = refresh()
+            if (refreshed) getHistory()
+            else null
+        }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
             null
         }
     }
