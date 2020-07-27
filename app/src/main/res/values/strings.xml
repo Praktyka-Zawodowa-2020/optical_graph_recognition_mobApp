@@ -16,6 +16,5 @@
     <string name="user_preferences">user_pref</string>
     <string name="jwtToken">User_jwtToken</string>
     <string name="refreshToken">User_refreshToken</string>
-    <string name="email">null</string>
 
 </resources>

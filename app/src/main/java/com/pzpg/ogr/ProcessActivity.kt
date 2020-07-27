@@ -9,10 +9,7 @@ import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.view.View.VISIBLE
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
@@ -20,6 +17,7 @@ import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.api.RequestManager
+import com.pzpg.ogr.api.request.ProcessMode
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +29,8 @@ class ProcessActivity : AppCompatActivity() {
     private var account: GoogleSignInAccount? = null
     private var requestManager : RequestManager? = null
     private var uriGraph: Uri? = null
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,15 +65,31 @@ class ProcessActivity : AppCompatActivity() {
     private fun createGraphFile(): File {
         // Create an image file name
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+        Log.i("createGraphFile", storageDir.toString())
         return File.createTempFile(
             "graph_",
-            ".gml",
+            ".graphml",
             storageDir
         )
     }
 
+    private fun getMode(): ProcessMode{
+        val default = ProcessMode.GRID_BG
+        val radioGroup : RadioGroup = findViewById(R.id.radioGroup)
+
+        return when(radioGroup.checkedRadioButtonId){
+            R.id.radioButton_auto -> default
+            R.id.radioButton_clear -> ProcessMode.CLEAN_BG
+            R.id.radioButton_grid -> ProcessMode.GRID_BG
+            R.id.radioButton_printed -> ProcessMode.PRINTED
+            else -> default
+        }
+    }
+
 
     fun process(view: View){
+
+        val mode = getMode()
 
         val textInfo = findViewById<TextView>(R.id.textView_graphInfo)
         val processButton = findViewById<Button>(R.id.button_process)
@@ -88,35 +104,20 @@ class ProcessActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
 
-                Log.i("process",fileToProcess.parentFile.absolutePath )
-                Log.i("process",fileToProcess.name )
-                Log.i("process",requestManager.toString() )
+                val graphTempFile = requestManager!!.processImage(fileToProcess.path, fileToProcess.name, mode)
+                graphTempFile?.let { tempFile ->
+                    val graphFile = createGraphFile()
+                    uriGraph = FileProvider.getUriForFile(
+                        currentActivity,
+                        "com.pzpg.org.fileprovider",
+                        graphFile
+                    )
 
-                val dir = fileToProcess.parentFile?.absolutePath
-
-                val guid = requestManager?.processImage(dir!!, fileToProcess.name)
-                textInfo.text = guid
-                finishContainer.visibility = VISIBLE
-                openButton.isEnabled = false
-                if(guid != null){
-                    val file = requestManager!!.getImage(guid)
-                    if (file != null){
-                        val graphFile = createGraphFile()
-                        uriGraph = FileProvider.getUriForFile(
-                            currentActivity,
-                            "com.pzpg.org.fileprovider",
-                            graphFile
-                        )
-
-
-
-                        file.copyTo(graphFile!!, overwrite=true)
-                        file.delete()
-                    }
-                }else{
-                    Log.i("process", "guid = $guid")
+                    tempFile.copyTo(graphFile, overwrite=true)
+                    tempFile.delete()
                 }
 
+                finishContainer.visibility = VISIBLE
                 openButton.isEnabled = true
             }
         }
@@ -124,12 +125,10 @@ class ProcessActivity : AppCompatActivity() {
 
     fun share(view: View){
         val shareIntent = Intent(Intent.ACTION_SEND)
-
         val graphFile = File(uriGraph.toString())
-
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
-        shareIntent.putExtra(Intent.EXTRA_STREAM,uriGraph)
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uriGraph)
         shareIntent.type = "application/xml"
         shareIntent.flags = flags
         shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);

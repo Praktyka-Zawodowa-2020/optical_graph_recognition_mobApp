@@ -106,7 +106,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         if (account != null){
             processButton.isEnabled = false
             CoroutineScope(Dispatchers.Main).launch {
-                val guid = requestManager.processImage(requireContext().getExternalFilesDir("Pictures")!!.absolutePath, "03.jpg")
+                val guid = requestManager.uploadImage(requireContext().getExternalFilesDir("Pictures")!!.absolutePath, "03.jpg")
                 processButton.isEnabled = true
                 guidView.text = guid
             }

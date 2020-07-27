@@ -7,17 +7,30 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
-import java.lang.Exception
-import kotlin.math.log
 
-class RequestServer(url_server: String){
-    private val TAG = "RequestServer"
-    private val SERVER_URL = url_server
+/**
+ * Class for request to server
+ *
+ * @property[serverUrl] the url of the server
+ * @author github.com/Graidaris
+ */
+class RequestServer(private val serverUrl: String){
 
-    suspend fun authorize(account: GoogleSignInAccount): MutableMap<String, String>?{
+    /**
+     * Authorizes a user on the server to use the API
+     *
+     * @param[account] a google account has GoogleSignInAccount type
+     * @return JSONObject which has three keys "mail", "jwtToken" and "refreshToken"
+     * this three keys have string value
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws NotAllowedMethodException
+     *
+     * @author github.com/Graidaris
+     */
+    suspend fun authorize(account: GoogleSignInAccount): JSONObject{
         val endpoint = "/users/authenticate"
 
         val msg = JSONObject()
@@ -25,150 +38,200 @@ class RequestServer(url_server: String){
         msg.accumulate("authCode", account.serverAuthCode)
 
         return withContext(Dispatchers.IO) {
-            try{
-                val (_, response, result) = Fuel.post(SERVER_URL + endpoint)
-                    .header(Headers.CONTENT_TYPE to "application/json")
-                    .body(msg.toString())
-                    .responseString()
+            val (request, response, result) = Fuel.post(serverUrl + endpoint)
+                .header(Headers.CONTENT_TYPE to "application/json")
+                .body(msg.toString())
+                .responseString()
 
-                Log.i("authorize", response.statusCode.toString())
+            Log.i("authorize", response.statusCode.toString())
 
-                when(response.statusCode){
-                    200 -> {
-                        val res = JSONObject(result.get())
-
-                        return@withContext mutableMapOf<String, String>().also {
-                            it.put("refreshToken", res.getString("refreshToken"))
-                            it.put("jwtToken", res.getString("jwtToken"))
-                            it.put("code_response",response.statusCode.toString())
-                            it.put("info", "success")
-                        }
-                    }
-                    else -> {
-                        val (_, error) = result
-
-                        return@withContext mutableMapOf<String, String>().also {
-                            it.put("refreshToken", "null")
-                            it.put("jwtToken", "null")
-                            it.put("code_response",response.statusCode.toString())
-                            it.put("info", error.toString().split('\n')[0])
-                        }
-                    }
-                }
-
-            }catch (e: Exception){
-                Log.e("authenticate", e.toString())
-                return@withContext null
+            when(response.statusCode){
+                200 -> return@withContext JSONObject(result.get())
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
     }
 
-    suspend fun refreshToken(rToken: String): MutableMap<String, String>?{
+    /**
+     * Suspend method to refresh token method to refresh the access token "jwtToken" when the time of the token has expired
+     *
+     * @param[rToken] refresh token which has string type
+     * @return JSONObject which has three keys "mail", "jwtToken" and "refreshToken"
+     * this three keys have string value
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws NotAllowedMethodException
+     *
+     * @author github.com/Graidaris
+     */
+    suspend fun refreshToken(rToken: String): JSONObject{
         val endpoint = "/users/refresh-token"
 
         return withContext(Dispatchers.IO) {
-            try {
-                val (_, response, result) = Fuel.post(SERVER_URL + endpoint)
-                    .header(Headers.COOKIE to "refreshToken=$rToken; path=/")
-                    .responseString()
-                Log.i("refreshToken", response.statusCode.toString())
-                when(response.statusCode){
-                    200 -> {
-                        val res = JSONObject(result.get())
+            val body = JSONObject()
+            body.accumulate("token", rToken)
 
-                        return@withContext mutableMapOf<String, String>().also {
-                            it.put("refreshToken", res.getString("refreshToken"))
-                            it.put("jwtToken", res.getString("jwtToken"))
-                            it.put("code_response",response.statusCode.toString())
-                            it.put("info", "success")
-                        }
-                    }
-                    else -> {
-                        val (_, error) = result
+            val (request, response, result) = Fuel.post(serverUrl + endpoint)
+                .header(Headers.CONTENT_TYPE to "application/json")
+                .body(body.toString())
+                .responseString()
 
-                        return@withContext mutableMapOf<String, String>().also {
-                            it.put("refreshToken", "null")
-                            it.put("jwtToken", "null")
-                            it.put("code_response",response.statusCode.toString())
-                            it.put("info", error.toString().split('\n')[0])
-                        }
-                    }
-                }
-
-            }catch (e: Exception){
-                Log.e("refreshToken", e.toString())
-                return@withContext null
+            Log.i("refreshToken", response.statusCode.toString())
+            when(response.statusCode){
+                200 -> return@withContext JSONObject(result.get())
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
     }
 
-    suspend fun processImage(path: String, name: String, jwtToken: String) : MutableMap<String, String>? {
-        val endpoint = "/api/image/process"
+    /**
+     * Suspend method to upload an image which will processed to the server
+     *
+     * @param[dir] a directory where the image is located, has String type
+     * @param[name] a name of the image has String type
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     * @return guid of the uploaded image, has String type
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws NotAllowedMethodException
+     *
+     * @author github.com/Graidaris
+     */
+    suspend fun uploadImage(dir: String, name: String, jwtToken: String): String{
+        val endpoint = "/api/graphs/create"
 
         return withContext(Dispatchers.IO){
-            try {
-                val file = FileDataPart.from(path, name, name="file")
+            val file = FileDataPart.from(dir, name, name="file")
 
-                Log.i("processImage", file.toString())
-                val (_ , response, result) = Fuel.upload(SERVER_URL + endpoint)
-                    .add(file)
-                    .header(mapOf("authorization" to "Bearer $jwtToken"))
-                    .responseString()
-
-                Log.i("processImage", response.statusCode.toString())
-
-                when(response.statusCode){
-                    200 -> {
-                        val resultJson = JSONObject(result.get())
-
-                        return@withContext mutableMapOf<String, String>().also {
-                            it.put("guid", resultJson.getString("guid"))
-                            it.put("code_response",response.statusCode.toString())
-                            it.put("info", "success")
-                        }
-                    }
-                    else -> {
-                        return@withContext mutableMapOf<String, String>().also {
-                            it.put("guid", "null")
-                            it.put("code_response",response.statusCode.toString())
-                            it.put("info", "Something is wrong :C")
-                        }
-                    }
-                }
-
-            }catch(e: Exception){
-                Log.e("processImage EXCEPTION", e.toString())
-                return@withContext null
+            Log.i("uploadImage", file.toString())
+            val (request , response, result) = Fuel.upload(serverUrl + endpoint)
+                .add(file)
+                .header(mapOf("authorization" to "Bearer $jwtToken"))
+                .responseString()
+            val resultToJson = JSONObject(result.get())
+            Log.i("uploadImage", response.statusCode.toString())
+            when(response.statusCode){
+                200 -> return@withContext resultToJson.getString("guid")
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
     }
 
-    suspend fun getImage(guid: String, jwtToken: String ): File?{
-
-        val endpoint = "/api/image/get/"
+    /**
+     * Suspend method to process a image for graph recognition
+     *
+     * @param[guid] a guid of the uploaded image which we want to process
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     * @param[mode] a mode of the recognition
+     * @param[format] recognized graph format which we want to take after processing
+     * @return temporary file (graph)
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws NotAllowedMethodException
+     *
+     * @author github.com/Graidaris
+     */
+    suspend fun processImage(guid: String, jwtToken: String, mode: ProcessMode?, format: GraphFormat?) : File? {
+        val endpoint = "/api/graphs/process/"
 
         return withContext(Dispatchers.IO){
+
+            val parameters = ArrayList<Pair<String, String>>()
+            parameters.add("mode" to (mode?.name ?: ProcessMode.GRID_BG.name))
+            parameters.add("format" to (format?.name ?: GraphFormat.GraphML.name))
+
             val tempFile = File.createTempFile("temp", ".tmp")
 
-            val (request , response, result) =  Fuel.download(SERVER_URL + endpoint + guid,
-                parameters = listOf("format" to "GraphML"))
+            val (request, response, result) =  Fuel.download(serverUrl + endpoint + guid,
+                parameters = parameters, method=Method.POST)
                 .fileDestination{
-                        response, url -> tempFile
-                }.progress { readBytes, totalBytes ->
-                    val progress = readBytes.toFloat() / totalBytes.toFloat() * 100
-                    //Log.i("progress", "Bytes downloaded $readBytes / $totalBytes ($progress %)")
+                        _, _ -> tempFile
+                }
+                .header(mapOf("authorization" to "Bearer $jwtToken"))
+                .responseString()
+
+            Log.i("processImage", response.statusCode.toString())
+            when(response.statusCode){
+                200 -> return@withContext tempFile
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
+            }
+        }
+    }
+
+    /**
+     * Suspend method to download a file which representations a graph which has been recognitions by the server
+     *
+     * @param[guid] a guid of the uploaded image which we want to process
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     * @param[format] recognized graph format which we want to take after processing
+     * @return temporary file (graph)
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws NotAllowedMethodException
+     *
+     * @author github.com/Graidaris
+     */
+    suspend fun downloadGraph(guid: String, format: GraphFormat?, jwtToken: String ): File?{
+
+        val endpoint = "/api/graphs/get/"
+
+        return withContext(Dispatchers.IO){
+            val parameters = ArrayList<Pair<String, String>>()
+
+            parameters.add("format" to (format?.name ?: GraphFormat.GraphML.name))
+
+            val tempFile = File.createTempFile("temp", ".tmp")
+
+            val (request, response, result) =  Fuel.download(serverUrl + endpoint + guid,
+                parameters = parameters)
+                .fileDestination{
+                        _, _ -> tempFile
                 }.header(mapOf("authorization" to "Bearer $jwtToken"))
                 .responseString()
 
-            Log.i("getImage request", request.toString())
-            Log.i("getImage response", response.toString())
+            Log.i("downloadGraph", response.statusCode.toString())
 
-            if (response.statusCode == 200){
-                return@withContext tempFile
-            }else{
-                return@withContext null
+            when(response.statusCode){
+                200 -> return@withContext tempFile
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
-
     }
+
+    suspend fun getHistory(jwtToken: String): JSONArray{
+        val endpoint = "/api/graphs/history"
+
+        return withContext(Dispatchers.IO){
+            val (request, response, result) = Fuel.get(serverUrl + endpoint)
+                .header(mapOf("authorization" to "Bearer $jwtToken"))
+                .responseString()
+
+            Log.i("getHistory", response.statusCode.toString())
+
+            when(response.statusCode){
+                200 -> return@withContext JSONArray(result.get())
+                400 -> throw BadRequestException("Not valid data in request")
+                401 -> throw UnauthorizedException("User not authorized")
+                405 -> throw NotAllowedMethodException("Bad request method")
+                else -> throw RequestServerException("Status code: ${response.statusCode}")
+            }
+        }
+    }
+
+
 }
