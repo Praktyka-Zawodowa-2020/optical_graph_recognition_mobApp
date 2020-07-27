@@ -1,6 +1,7 @@
 package com.pzpg.ogr.api
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.R
@@ -25,13 +26,9 @@ class RequestManager(val context: Context) {
      */
     suspend fun authenticate(account: GoogleSignInAccount){
         val urlServer = context.getString(R.string.url_server)
-        try {
-            val result = RequestServer(urlServer).authorize(account)
-            tokenManager.setJwtToken(result.getString("jwtToken"))
-            tokenManager.setRefreshToken(result.getString("refreshToken"))
-        }catch (e: RequestServerException){
-            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
-        }
+        val result = RequestServer(urlServer).authorize(account)
+        tokenManager.setJwtToken(result.getString("jwtToken"))
+        tokenManager.setRefreshToken(result.getString("refreshToken"))
     }
 
     /**
@@ -88,7 +85,10 @@ class RequestManager(val context: Context) {
     ): File?{
 
         val jwtToken = tokenManager.getJwtToken()
+        Log.i("processImage PATH", path)
+        Log.i("processImage NAME", name)
         val guid = uploadImage(path, name) ?: return null
+
         return try {
             RequestServer(context.getString(R.string.url_server))
                 .processImage(guid, jwtToken!!, mode, format)

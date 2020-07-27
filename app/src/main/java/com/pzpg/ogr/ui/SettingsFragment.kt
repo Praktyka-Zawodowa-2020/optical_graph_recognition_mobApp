@@ -1,24 +1,28 @@
 package com.pzpg.ogr.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.R
 import com.pzpg.ogr.REQUEST_SIGN_IN_SETTING
 import com.pzpg.ogr.REQUEST_SIGN_OUT_SETTING
 import com.pzpg.ogr.api.RequestManager
-import com.pzpg.ogr.authorize_google.EXTRA_ACTION
-import com.pzpg.ogr.authorize_google.SIGN_IN
-import com.pzpg.ogr.authorize_google.SIGN_OUT
-import com.pzpg.ogr.authorize_google.SignInFragmentActivity
+import com.pzpg.ogr.SignInFragmentActivity
+import com.pzpg.ogr.SignInFragmentActivity.Companion.EXTRA_ACTION
+import com.pzpg.ogr.SignInFragmentActivity.Companion.SIGN_IN
+import com.pzpg.ogr.SignInFragmentActivity.Companion.SIGN_OUT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,11 +50,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
         val signOutButton = view.findViewById<Button>(R.id.button_signInOut)
-        val refreshTokenButton = view.findViewById<Button>(R.id.button_refreshToken)
-        val processButton = view.findViewById<Button>(R.id.button_processImage)
         signOutButton.setOnClickListener(this)
-        refreshTokenButton.setOnClickListener(this)
-        processButton.setOnClickListener(this)
 
 
         account = GoogleSignIn.getLastSignedInAccount(requireActivity())
@@ -61,12 +61,21 @@ class SettingsFragment : Fragment(), View.OnClickListener {
     private fun updateUI(view: View){
         val accountTextView = view.findViewById<TextView>(R.id.textView_infoAccount)
         val buttonSignInOut = view.findViewById<Button>(R.id.button_signInOut)
+        val avatarView = view.findViewById<ImageView>(R.id.imageView4)
 
         if (account != null){
+            val avatarUri: Uri? = account?.photoUrl
+            avatarUri?.let {
+                Glide.with(this)
+                    .load(it)
+                    .into(avatarView)
+            }
+
             accountTextView.text = account!!.displayName
             buttonSignInOut.text = "sign out"
         }
         else{
+            avatarView.setImageResource(R.mipmap.empty_avatar)
             accountTextView.text = "You are not sign in"
             buttonSignInOut.text = "sign in"
         }
@@ -89,29 +98,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    private fun refreshToken(){
-        val refreshTokenButton = requireView().findViewById<Button>(R.id.button_refreshToken)
-        if (account != null){
-            refreshTokenButton.isEnabled = false
-            CoroutineScope(Dispatchers.Main).launch {
-                requestManager.refresh()
-                refreshTokenButton.isEnabled = true
-            }
-        }
-    }
 
-    private fun processImage(){
-        val processButton = requireView().findViewById<Button>(R.id.button_processImage)
-        val guidView = requireView().findViewById<TextView>(R.id.textView_image)
-        if (account != null){
-            processButton.isEnabled = false
-            CoroutineScope(Dispatchers.Main).launch {
-                val guid = requestManager.uploadImage(requireContext().getExternalFilesDir("Pictures")!!.absolutePath, "03.jpg")
-                processButton.isEnabled = true
-                guidView.text = guid
-            }
-        }
-    }
 
     override fun onClick(view: View) {
         when(view.id){
@@ -126,13 +113,6 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                     }
                 }
             }
-            R.id.button_refreshToken -> {
-                refreshToken()
-            }
-            R.id.button_processImage -> {
-                processImage()
-            }
-
         }
     }
 

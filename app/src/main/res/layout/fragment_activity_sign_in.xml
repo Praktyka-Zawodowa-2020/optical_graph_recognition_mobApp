@@ -4,67 +4,83 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".authorize_google.SignInFragmentActivity">
+    tools:context=".SignInFragmentActivity">
 
-    <TextView
-        android:id="@+id/signIn_info"
+    <ImageView
+        android:id="@+id/imageView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toTopOf="@+id/sign_in_button"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="65dp"
+        android:layout_marginEnd="56dp"
+        android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        tools:visibility="gone" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@mipmap/logo_200x200" />
 
-    <com.google.android.gms.common.SignInButton
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/sign_in_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/button_back"
-        app:layout_constraintEnd_toStartOf="@+id/button_signInOut"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="36dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="15dp"
+        android:onClick="clickSignIn"
+        android:text="SIGN IN"
+        app:backgroundTint="@color/Primary"
+        app:layout_constraintBottom_toTopOf="@+id/button_reconect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_reconect"
+        style="@style/Theme.MaterialComponents.Light.BottomSheetDialog"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="36dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="36dp"
+        android:onClick="clickSignIn"
+
+        android:text="Reconect"
+        android:textColor="@color/black"
+        android:visibility="invisible"
+        app:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:rippleColor="@color/Primary" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="For use the app for the optical recognize you need to log in"
+        android:layout_height="42dp"
+        android:layout_marginBottom="20dp"
+        android:gravity="center"
+        android:text="SIGN IN WITH GOOGLE"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/sign_in_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/button_back"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="back"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/button_signInOut"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="sign out"
-        app:layout_constraintBottom_toTopOf="@+id/button_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/sign_in_button"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
-        android:id="@+id/textView_tokenInfo"
-        android:layout_width="wrap_content"
+        android:id="@+id/textView_error"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Token info"
-        app:layout_constraintBottom_toTopOf="@+id/button_back"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@color/red_700"
+        android:gravity="center"
+        android:text="ERROR"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
-
+        app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

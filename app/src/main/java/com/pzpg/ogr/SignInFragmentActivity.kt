@@ -1,48 +1,47 @@
-package com.pzpg.ogr.authorize_google
+package com.pzpg.ogr
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.Button
-import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.Scopes
-import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
-import com.pzpg.ogr.R
-import com.pzpg.ogr.REQUEST_SIGN_IN
+import com.pzpg.ogr.api.RequestManager
 import com.pzpg.ogr.api.request.RequestServer
-import kotlinx.coroutines.*
+import com.pzpg.ogr.api.request.TimeOutException
+import kotlinx.android.synthetic.main.fragment_activity_sign_in.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
-class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
+class SignInFragmentActivity : FragmentActivity(){
 
     private val TAG = "SignInFragmentActivity"
 
     lateinit var mGoogleSignInClient: GoogleSignInClient
     private var myAccount: GoogleSignInAccount? = null
-    private val RC_SIGN_IN = 0
 
-    val uiScope = CoroutineScope(Dispatchers.Main)
-
-    lateinit var requestServerServer: RequestServer
+    lateinit var requestManager: RequestManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_activity_sign_in)
 
-        requestServerServer = RequestServer(getString(R.string.url_server))
+        requestManager = RequestManager(this)
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestScopes(Scope(Scopes.DRIVE_FULL))
@@ -53,6 +52,13 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
 
+        val logo: Bitmap = BitmapFactory.decodeResource(
+            resources,
+            R.mipmap.logo_200x200
+        )
+
+        imageView3.setImageBitmap(logo)
+
         val action: String? = intent.getStringExtra(EXTRA_ACTION)
 
         action?.also {
@@ -62,7 +68,6 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
                     finish()
                 }
                 SIGN_OUT -> {
-
                     signOut()
                     finish()
                 }
@@ -72,37 +77,15 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
             }
         }
 
-        val buttonSignIn: SignInButton = findViewById(R.id.sign_in_button)
-        val buttonBack: Button = findViewById(R.id.button_back)
-        val buttonSignOut: Button = findViewById(R.id.button_signInOut)
-        buttonSignIn.setOnClickListener(this)
-        buttonBack.setOnClickListener(this)
-        buttonSignOut.setOnClickListener(this)
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        // Check for existing Google Sign In account, if the user is already signed in
-        // the GoogleSignInAccount will be non-null.
-        val account = GoogleSignIn.getLastSignedInAccount(this)
-        updateUI(account)
+    fun clickSignIn(view: View){
+        signIn()
     }
 
-
-    private fun updateUI(account: GoogleSignInAccount?){
-        val signInTextInfo = findViewById<TextView>(R.id.signIn_info)
-        val signInButton = findViewById<SignInButton>(R.id.sign_in_button)
-        val signOutButton = findViewById<Button>(R.id.button_signInOut)
-
-        if (account != null){
-            signInTextInfo.text = account.displayName
-            signInButton.visibility = GONE
-            signOutButton.visibility = VISIBLE
-        }else{
-            signInTextInfo.text = "You are not actually logIn"
-            signInButton.visibility = VISIBLE
-            signOutButton.visibility = GONE
+    fun clickGetToken(view: View){
+        myAccount?.let {
+            getToken(it)
         }
     }
 
@@ -141,50 +124,41 @@ class SignInFragmentActivity : FragmentActivity(), View.OnClickListener {
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
             myAccount = completedTask.getResult(ApiException::class.java)
-            // Signed in successfully, show authenticated UI.
-            Log.d("Sign in", "signInResult:succeeded")
-            updateUI(myAccount)
-
-            // Call Optical Graph Server Api and authorize it aswell
-           //AuthorizeRequest().execute(account)
-            //val res = async{} requestServerServer.authorize(account)
-
-
+            myAccount?.let {
+                textView2.text = "Hello: ${it.displayName}"
+                getToken(it)
+            }
         } catch (e: ApiException) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            textView_error.visibility = VISIBLE
+            textView_error.text = "Failed google signIn: ${e.statusCode} "
             Log.w("Sign in", "signInResult:failed code=" + e.statusCode)
-            updateUI(null)
         }
     }
 
     private fun getToken(account: GoogleSignInAccount)
     {
         Log.i("getToken", "getToken IN")
-        val sharedPref = getSharedPreferences(getString(R.string.user_preferences) ,Context.MODE_PRIVATE)
-        CoroutineScope(Dispatchers.IO).launch{
-            val result = requestServerServer.authorize(account)
-
-            with (sharedPref.edit()) {
-                putString(getString(R.string.jwtToken), result?.get("jwtToken").toString())
-                commit()
+        val currentActivity = this
+        CoroutineScope(Dispatchers.Main).launch{
+            try {
+                requestManager.authenticate(account)
+                finish()
+            }catch (e: TimeOutException){
+                textView_error.visibility = VISIBLE
+                textView_error.text = "Problem with the server connecting..."
+                button_reconect.visibility = VISIBLE
+                sign_in_button.isEnabled = false
+                Toast.makeText(currentActivity, e.message, Toast.LENGTH_SHORT).show()
             }
         }
     }
 
 
-    override fun onClick(view: View) {
-        when (view.id) {
-            R.id.sign_in_button -> {
-                signIn()
-                updateUI(myAccount)
-            }
-            R.id.button_back -> finish()
-            R.id.button_signInOut -> {
-                signOut()
-                updateUI(null)
-            }
-        }
+    companion object{
+        const val EXTRA_ACTION = "EXTRA_ACTION"
+        const val SIGN_IN = "sign_in"
+        const val SIGN_OUT = "sign_out"
+        const val SIGN_LAYOUT= "sign_layout"
     }
 
 }

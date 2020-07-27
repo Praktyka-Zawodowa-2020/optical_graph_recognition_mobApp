@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.lang.Exception
 
 /**
  * Class for request to server
@@ -48,8 +49,7 @@ class RequestServer(private val serverUrl: String){
             when(response.statusCode){
                 200 -> return@withContext JSONObject(result.get())
                 400 -> throw BadRequestException("Not valid data in request")
-                401 -> throw UnauthorizedException("User not authorized")
-                405 -> throw NotAllowedMethodException("Bad request method")
+                -1 -> throw TimeOutException("Server is not available")
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
@@ -72,7 +72,7 @@ class RequestServer(private val serverUrl: String){
 
         return withContext(Dispatchers.IO) {
             val body = JSONObject()
-            body.accumulate("token", rToken)
+            body.accumulate("token", "rToken")
 
             val (request, response, result) = Fuel.post(serverUrl + endpoint)
                 .header(Headers.CONTENT_TYPE to "application/json")
@@ -85,6 +85,7 @@ class RequestServer(private val serverUrl: String){
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
+                -1 -> throw TimeOutException("Server is not available")
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
@@ -110,7 +111,8 @@ class RequestServer(private val serverUrl: String){
             val file = FileDataPart.from(dir, name, name="file")
 
             Log.i("uploadImage", file.toString())
-            val (request , response, result) = Fuel.upload(serverUrl + endpoint)
+
+            val (request, response, result) = Fuel.upload(serverUrl + endpoint)
                 .add(file)
                 .header(mapOf("authorization" to "Bearer $jwtToken"))
                 .responseString()
@@ -121,6 +123,7 @@ class RequestServer(private val serverUrl: String){
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
+                -1 -> throw TimeOutException("Server is not available")
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
@@ -165,6 +168,7 @@ class RequestServer(private val serverUrl: String){
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
+                -1 -> throw TimeOutException("Server is not available")
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
@@ -208,6 +212,7 @@ class RequestServer(private val serverUrl: String){
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
+                -1 -> throw TimeOutException("Server is not available")
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }
@@ -228,6 +233,7 @@ class RequestServer(private val serverUrl: String){
                 400 -> throw BadRequestException("Not valid data in request")
                 401 -> throw UnauthorizedException("User not authorized")
                 405 -> throw NotAllowedMethodException("Bad request method")
+                -1 -> throw TimeOutException("Server is not available")
                 else -> throw RequestServerException("Status code: ${response.statusCode}")
             }
         }

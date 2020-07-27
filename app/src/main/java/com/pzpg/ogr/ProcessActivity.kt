@@ -41,13 +41,15 @@ class ProcessActivity : AppCompatActivity() {
         val path = intent.getStringExtra("EXTRA_PHOTO_PATH")
         var fileToProcess: File? = null
 
+        Log.i("ProcessActivity", path.toString())
+
         if(path != null && myAccount != null){
 
             val imageView: ImageView = findViewById(R.id.imageView2)
-            val textViewNmae: TextView = findViewById(R.id.textView_photoName)
+            val textViewName: TextView = findViewById(R.id.textView_photoName)
 
             fileToProcess = File(path)
-            textViewNmae.text = fileToProcess.name
+            textViewName.text = fileToProcess.name
             photoPath = path
 
             account = myAccount
@@ -104,7 +106,11 @@ class ProcessActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
 
-                val graphTempFile = requestManager!!.processImage(fileToProcess.path, fileToProcess.name, mode)
+                val graphTempFile = requestManager!!.processImage(
+                    fileToProcess.parentFile!!.path,
+                    fileToProcess.name,
+                    mode
+                )
                 graphTempFile?.let { tempFile ->
                     val graphFile = createGraphFile()
                     uriGraph = FileProvider.getUriForFile(
@@ -119,6 +125,8 @@ class ProcessActivity : AppCompatActivity() {
 
                 finishContainer.visibility = VISIBLE
                 openButton.isEnabled = true
+                processButton.isEnabled = true
+                processButton.text = "reprocess"
             }
         }
     }

@@ -10,7 +10,7 @@
         android:id="@+id/textView_background"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:text="Background:"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,39 +21,38 @@
         android:id="@+id/radioGroup"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toStartOf="@+id/imageView2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView_background">
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radioButton_auto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Auto" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radioButton_grid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Grid or lines" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radioButton_clear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Clear" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radioButton_printed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Printed graph" />
-
     </RadioGroup>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_process"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -107,33 +106,43 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Process is finished"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/button_openGraph"
+        <LinearLayout
+            android:id="@+id/linearLayout2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:onClick="openGraph"
-            android:text="open"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/button_share"
-            app:layout_constraintTop_toBottomOf="@+id/textView_graphInfo"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent">
 
-        <Button
-            android:id="@+id/button_share"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:onClick="share"
-            android:text="share"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button_openGraph"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView_graphInfo"
-            app:layout_constraintVertical_bias="0.0" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_share"
+                android:layout_width="150dp"
+                android:layout_height="50dp"
+                android:onClick="share"
+                android:text="share"
+                app:icon="@drawable/ic_baseline_share_24" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_openGraph"
+                android:layout_width="150dp"
+                android:layout_height="50dp"
+                android:onClick="openGraph"
+                android:text="open" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -152,5 +161,7 @@
         android:layout_height="wrap_content"
         android:text="name"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/radioGroup"
         app:layout_constraintTop_toBottomOf="@+id/imageView2" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

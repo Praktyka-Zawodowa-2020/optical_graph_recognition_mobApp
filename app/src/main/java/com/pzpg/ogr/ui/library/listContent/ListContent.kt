@@ -1,5 +1,6 @@
 package com.pzpg.ogr.ui.library.listContent
 
+import android.net.Uri
 import java.util.ArrayList
 import java.util.HashMap
 
@@ -30,7 +31,7 @@ object ListContent {
 
     fun addItem(item: ListItem) {
         ITEMS.add(item)
-        ITEM_MAP.put(item.id, item)
+        ITEM_MAP[item.id] = item
         COUNT += 1
     }
 
@@ -40,14 +41,14 @@ object ListContent {
         COUNT = 0
     }
 
-    fun createListItem(position: Int, content: String): ListItem{
-        return ListItem(position.toString(), content, makeDetails(position))
+    fun createListItem(position: Int, content: String, uri: Uri): ListItem{
+        return ListItem(position.toString(), content, uri, makeDetails(position))
     }
 
     private fun makeDetails(position: Int): String {
         val builder = StringBuilder()
         builder.append("Details about Item: ").append(position)
-        for (i in 0..position - 1) {
+        for (i in 0 until position) {
             builder.append("\nMore details information here.")
         }
         return builder.toString()
@@ -56,7 +57,7 @@ object ListContent {
     /**
      * A graph item representing a piece of content.
      */
-    data class ListItem(val id: String, val content: String, val details: String) {
+    data class ListItem(val id: String, val content: String, val uri: Uri, val details: String) {
         override fun toString(): String = content
     }
 }
