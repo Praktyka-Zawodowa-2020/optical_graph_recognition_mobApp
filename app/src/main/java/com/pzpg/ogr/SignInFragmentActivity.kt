@@ -1,5 +1,6 @@
 package com.pzpg.ogr
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -7,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
@@ -52,26 +54,20 @@ class SignInFragmentActivity : FragmentActivity(){
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        val logo: Bitmap = BitmapFactory.decodeResource(
-            resources,
-            R.mipmap.logo_200x200
-        )
-
-        imageView3.setImageBitmap(logo)
 
         val action: String? = intent.getStringExtra(EXTRA_ACTION)
 
         action?.also {
             when(it){
-                SIGN_IN -> {
+                EXTRA_SIGN_IN -> {
                     signIn()
                     finish()
                 }
-                SIGN_OUT -> {
+                EXTRA_SIGN_OUT -> {
                     signOut()
                     finish()
                 }
-                SIGN_LAYOUT ->{
+                EXTRA_SIGN_LAYOUT ->{
 
                 }
             }
@@ -92,7 +88,7 @@ class SignInFragmentActivity : FragmentActivity(){
     private fun signIn() {
         Log.d(TAG, "signIn")
         mGoogleSignInClient.signInIntent.also {
-            startActivityForResult(it, REQUEST_SIGN_IN)
+            startActivityForResult(it, SIGN_IN)
         }
     }
 
@@ -106,13 +102,37 @@ class SignInFragmentActivity : FragmentActivity(){
             })
     }
 
+    @SuppressLint("SetTextI18n")
+    private fun showInfo(message: String){
+        val pref = "Info: "
+        textView_info.text = pref + message
+        textView_info.visibility = VISIBLE
+    }
+
+    private fun hideInfo(){
+        textView_info.visibility = INVISIBLE
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun showError(message: String){
+        val pref = "Error: "
+        textView_error.text = pref + message
+        textView_error.visibility = VISIBLE
+    }
+
+    private fun hideError(){
+        textView_error.visibility = INVISIBLE
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        hideError()
+        hideInfo()
 
         Log.d("SIGN IN FRAGMENT", "onActivityResult")
 
         // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
-        if (requestCode == REQUEST_SIGN_IN) {
+        if (requestCode == SIGN_IN) {
             // The Task returned from this call is always completed, no need to attach
             // a listener.
             val task: Task<GoogleSignInAccount> =
@@ -121,7 +141,9 @@ class SignInFragmentActivity : FragmentActivity(){
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        sign_in_button.isEnabled = false
         try {
             myAccount = completedTask.getResult(ApiException::class.java)
             myAccount?.let {
@@ -129,36 +151,46 @@ class SignInFragmentActivity : FragmentActivity(){
                 getToken(it)
             }
         } catch (e: ApiException) {
-            textView_error.visibility = VISIBLE
-            textView_error.text = "Failed google signIn: ${e.statusCode} "
+            sign_in_button.isEnabled = true
+            showError("Failed google signIn: ${e.statusCode}")
             Log.w("Sign in", "signInResult:failed code=" + e.statusCode)
         }
     }
 
+
+
     private fun getToken(account: GoogleSignInAccount)
     {
         Log.i("getToken", "getToken IN")
+        showInfo("connecting to server...")
+        hideError()
+        button_reconect.isEnabled = false
         val currentActivity = this
         CoroutineScope(Dispatchers.Main).launch{
-            try {
-                requestManager.authenticate(account)
+
+            if(requestManager.authenticate(account)){
                 finish()
-            }catch (e: TimeOutException){
-                textView_error.visibility = VISIBLE
-                textView_error.text = "Problem with the server connecting..."
+            }else {
+                val message = "Problem with the server connecting..."
+                showError(message)
                 button_reconect.visibility = VISIBLE
                 sign_in_button.isEnabled = false
-                Toast.makeText(currentActivity, e.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(currentActivity, message, Toast.LENGTH_LONG).show()
             }
+            hideInfo()
+            button_reconect.isEnabled = true
         }
     }
 
 
     companion object{
+        const val SIGN_IN = 1
+        const val SIGN_OUT = 2
+
         const val EXTRA_ACTION = "EXTRA_ACTION"
-        const val SIGN_IN = "sign_in"
-        const val SIGN_OUT = "sign_out"
-        const val SIGN_LAYOUT= "sign_layout"
+        const val EXTRA_SIGN_IN = "sign_in"
+        const val EXTRA_SIGN_OUT = "sign_out"
+        const val EXTRA_SIGN_LAYOUT= "sign_layout"
     }
 
 }

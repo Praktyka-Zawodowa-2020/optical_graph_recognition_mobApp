@@ -1,4 +1,4 @@
-package com.pzpg.ogr.ui.takePicture
+package com.pzpg.ogr.takePicture
 
 import android.graphics.Bitmap
 import android.net.Uri

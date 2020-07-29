@@ -1,10 +1,9 @@
-package com.pzpg.ogr.ui.takePicture
+package com.pzpg.ogr.takePicture
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
-import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -280,5 +279,11 @@ class TakePictureFragment : Fragment() {
                 }
             }
         }
+    }
+
+    companion object{
+        const val REQUEST_CAMERA_PHOTO = 1
+        const val REQUEST_GALLERY_PHOTO = 2
+        const val EDIT_INTENT = 3
     }
 }

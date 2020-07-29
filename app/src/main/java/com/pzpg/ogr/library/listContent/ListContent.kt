@@ -1,4 +1,4 @@
-package com.pzpg.ogr.ui.library.listContent
+package com.pzpg.ogr.library.listContent
 
 import android.net.Uri
 import java.util.ArrayList

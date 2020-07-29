@@ -175,9 +175,14 @@ class RequestServer(private val serverUrl: String){
                              format: GraphFormat?) : File? = withContext(Dispatchers.IO){
         val endpoint = "/api/graphs/process/"
 
+        Log.i("processImage", format.toString())
+
         val parameters = ArrayList<Pair<String, String>>()
-        parameters.add("mode" to (mode?.name ?: ProcessMode.GRID_BG.name))
+       // parameters.add("mode" to (mode?.name ?: ProcessMode.GRID_BG.name))
         parameters.add("format" to (format?.name ?: GraphFormat.GraphML.name))
+
+        val body = JSONObject()
+        body.accumulate("mode", mode?.name ?: ProcessMode.GRID_BG.name)
 
         val tempFile = File.createTempFile("temp", ".tmp")
 
@@ -186,6 +191,9 @@ class RequestServer(private val serverUrl: String){
             .fileDestination{
                     _, _ -> tempFile
             }
+
+            .body(body.toString())
+            .header(Headers.CONTENT_TYPE to "application/json")
             .header(mapOf("authorization" to "Bearer $jwtToken"))
             .responseString()
 

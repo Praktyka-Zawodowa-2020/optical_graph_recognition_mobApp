@@ -1,13 +1,16 @@
 package com.pzpg.ogr
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Message
 import android.util.Log
 import android.view.View
+import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +20,7 @@ import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.api.RequestManager
+import com.pzpg.ogr.api.request.GraphFormat
 import com.pzpg.ogr.api.request.ProcessMode
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import kotlinx.coroutines.CoroutineScope
@@ -27,8 +31,9 @@ import java.io.File
 class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
     private var account: GoogleSignInAccount? = null
-    private var requestManager : RequestManager? = null
-    private var uriGraph: Uri? = null
+    private lateinit var requestManager : RequestManager
+    private var uriGraphSix: Uri? = null
+    private var uriGraphMl: Uri? = null
 
 
 
@@ -64,13 +69,13 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    private fun createGraphFile(): File {
+    private fun createGraphFile(graphFormat: GraphFormat): File {
         // Create an image file name
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
         Log.i("createGraphFile", storageDir.toString())
         return File.createTempFile(
             "graph_",
-            ".graphml",
+            graphFormat.suffix,
             storageDir
         )
     }
@@ -88,41 +93,66 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
+    private fun getUriForTempFile(file: File, graphFormat: GraphFormat): Uri{
+        val graphFile = createGraphFile(graphFormat)
+        val uri = FileProvider.getUriForFile(
+            this,
+            "com.pzpg.org.fileprovider",
+            graphFile
+        )
+
+        file.copyTo(graphFile, overwrite=true)
+        file.delete()
+        return uri
+    }
 
     fun process(view: View){
-
         val mode = getMode()
 
-        val textInfo = findViewById<TextView>(R.id.textView_graphInfo)
         val processButton = findViewById<Button>(R.id.button_process)
         val openButton = findViewById<Button>(R.id.button_openGraph)
+
+        val buttonShareGml = findViewById<Button>(R.id.button_shareGml)
+        val buttonShareGSix = findViewById<Button>(R.id.button_shareGsix)
+        buttonShareGml.isEnabled = false
+        buttonShareGSix.isEnabled = false
 
         val finishContainer = findViewById<ConstraintLayout>(R.id.finish_container)
         processButton.isEnabled = false
         val fileToProcess: File? = File(photoPath!!)
 
-        val currentActivity = this
+        showInfo("Start process")
 
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
-
-                val graphTempFile = requestManager!!.processImage(
+                showInfo("Upload image")
+                val guid = requestManager.uploadImage(
                     fileToProcess.parentFile!!.path,
-                    fileToProcess.name,
-                    mode
+                    fileToProcess.name
                 )
-                graphTempFile?.let { tempFile ->
-                    val graphFile = createGraphFile()
-                    uriGraph = FileProvider.getUriForFile(
-                        currentActivity,
-                        "com.pzpg.org.fileprovider",
-                        graphFile
-                    )
 
-                    tempFile.copyTo(graphFile, overwrite=true)
-                    tempFile.delete()
+                if (guid != null){
+                    showInfo("Process image GraphML")
+                    val graphTempFileGraphML =
+                        requestManager.processImage(guid, mode, GraphFormat.GraphML)
+
+                    graphTempFileGraphML?.let { tempFile ->
+                        showInfo("Get graph file GraphML")
+                        uriGraphMl = getUriForTempFile(tempFile, GraphFormat.GraphML)
+                        buttonShareGml.isEnabled = true
+                    }
+                    showInfo("Process image Graph6")
+                    val graphTempFileGSix =
+                        requestManager.processImage(guid, mode, GraphFormat.Graph6)
+
+                    graphTempFileGSix?.let { tempFile ->
+                        showInfo("Get graph file Graph6")
+                        uriGraphSix = getUriForTempFile(tempFile, GraphFormat.Graph6)
+                        buttonShareGSix.isEnabled = true
+                    }
                 }
 
+                hideInfo()
                 finishContainer.visibility = VISIBLE
                 openButton.isEnabled = true
                 processButton.isEnabled = true
@@ -131,12 +161,20 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    fun share(view: View){
+    fun shareMl(view: View){
+        uriGraphMl?.let { share(it) }
+    }
+
+    fun shareSix(view: View){
+        uriGraphSix?.let { share(it) }
+    }
+
+    private fun share(uri: Uri){
         val shareIntent = Intent(Intent.ACTION_SEND)
-        val graphFile = File(uriGraph.toString())
+        val graphFile = File(uri.toString())
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
-        shareIntent.putExtra(Intent.EXTRA_STREAM, uriGraph)
+        shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
         shareIntent.type = "application/xml"
         shareIntent.flags = flags
         shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);
@@ -148,14 +186,13 @@ class ProcessActivity : AppCompatActivity() {
             .queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
         for (resolveInfo in resInfoList) {
             val packageName: String = resolveInfo.activityInfo.packageName
-            grantUriPermission(packageName, uriGraph, flags)
+            grantUriPermission(packageName, uri, flags)
         }
-
         startActivity(chooser)
     }
 
     fun openGraph(view: View){
-        val uriFile = uriGraph
+        val uriFile = uriGraphMl
         uriFile?.let {
             Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
                 graphActivity.data = uriFile
@@ -163,4 +200,20 @@ class ProcessActivity : AppCompatActivity() {
             }
         }
     }
+
+    @SuppressLint("SetTextI18n")
+    private fun showInfo(message: String){
+        val pref = "Info: "
+        val textViewInfo = findViewById<TextView>(R.id.textView_info)
+        textViewInfo.text = pref + message
+        textViewInfo.visibility = VISIBLE
+    }
+
+    private fun hideInfo(){
+        val pref = "Info: "
+        val textViewInfo = findViewById<TextView>(R.id.textView_info)
+        textViewInfo.text = pref
+        textViewInfo.visibility = GONE
+    }
+
 }

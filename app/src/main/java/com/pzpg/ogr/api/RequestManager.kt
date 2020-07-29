@@ -25,22 +25,27 @@ class RequestManager(val context: Context) {
      * Suspend fun to called from a coroutine, required for user authentication to the server.
      *
      * @param[account] has GoogleSignInAccount type
+     * @return[Boolean] indicates successful authentication on the server
      */
-    suspend fun authenticate(account: GoogleSignInAccount) = withContext(Dispatchers.Main){
+    suspend fun authenticate(account: GoogleSignInAccount): Boolean = withContext(Dispatchers.Main){
         val urlServer = context.getString(R.string.url_server)
         try {
             val result = RequestServer(urlServer).authorize(account)
             tokenManager.setJwtToken(result.getString("jwtToken"))
             tokenManager.setRefreshToken(result.getString("refreshToken"))
+            true
         }
         catch (e: BadRequestException){
             Log.e("BadRequestException", e.toString())
+            false
         }
         catch (e: TimeOutException){
             Log.e("TimeOutException", e.toString())
+            false
         }
         catch (e: RequestServerException){
             Log.e("RequestServerException", e.toString())
+            false
         }
     }
 
@@ -82,7 +87,6 @@ class RequestManager(val context: Context) {
         try {
             RequestServer(context.getString(R.string.url_server))
                 .uploadImage(path, name, jwtToken!!)
-
         }
         catch (e: UnauthorizedException){
             val refreshed = refresh()
@@ -130,6 +134,32 @@ class RequestManager(val context: Context) {
             null
         }
     }
+
+    suspend fun processImage(
+         guid: String,
+         mode: ProcessMode = ProcessMode.GRID_BG,
+         format: GraphFormat = GraphFormat.GraphML
+    ): File? = withContext(Dispatchers.Main){
+
+        val jwtToken = tokenManager.getJwtToken()
+        Log.i("processImage GUID", guid)
+
+        try {
+            RequestServer(context.getString(R.string.url_server))
+                .processImage(guid, jwtToken!!, mode, format)
+
+        }catch (e: UnauthorizedException){
+            val refreshed = refresh()
+            if (refreshed) processImage(guid, mode, format)
+            else null
+        }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            null
+        }
+    }
+
+
+
 
     suspend fun getHistory(): JSONArray?{
         val jwtToken = tokenManager.getJwtToken()

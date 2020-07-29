@@ -15,6 +15,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.material.navigation.NavigationView
+import com.pzpg.ogr.api.TokenManager
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,15 +24,20 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var SIGN_IN = 1
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         Log.i(TAG, "activity has been created")
 
+        val tokenManager = TokenManager(this)
+
 
         val account = GoogleSignIn.getLastSignedInAccount(this)
         if(account == null){
+            tokenManager.clear()
             Intent(this, SignInFragmentActivity::class.java).also {
                 startActivityForResult(it, SIGN_IN)
             }

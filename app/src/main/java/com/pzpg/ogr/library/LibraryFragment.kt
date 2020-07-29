@@ -1,4 +1,4 @@
-package com.pzpg.ogr.ui.library
+package com.pzpg.ogr.library
 
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzpg.ogr.R
-import com.pzpg.ogr.ui.library.listContent.ListContent
+import com.pzpg.ogr.library.listContent.ListContent
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import java.io.File
 
