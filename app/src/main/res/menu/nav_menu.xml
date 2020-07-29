@@ -24,13 +24,4 @@
                 android:title="Settings"/>
         </menu>
     </item>
-
-
-    <item android:title="Tests">
-        <menu>
-            <item
-                android:id="@+id/nav_test_fr"
-                android:title="Test"/>
-        </menu>
-    </item>
 </menu>

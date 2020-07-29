@@ -5,52 +5,86 @@
     android:id="@+id/fragment_home"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.takePicture.TakePictureFragment">
+    tools:context=".takePicture.TakePictureFragment">
 
     <!-- TODO: Update blank fragment layout -->
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_gallery"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:onClick="openGallery"
+            android:text="@string/gallery"
+            app:icon="@drawable/ic_baseline_add_photo_alternate_24" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_camera"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:onClick="takePhoto"
+            android:text="@string/take_photo"
+            app:icon="@drawable/ic_baseline_camera" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            tools:layout_editor_absoluteX="1dp"
+            tools:layout_editor_absoluteY="556dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_process"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="125dp"
+            android:layout_height="70dp"
+            android:text="@string/process" />
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="18dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="18dp"
-        android:layout_marginBottom="18dp"
+        android:layout_marginBottom="16dp"
         android:contentDescription="@string/graph_image"
-        app:layout_constraintBottom_toTopOf="@+id/button_process"
+        app:layout_constraintBottom_toTopOf="@+id/divider3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_empty_picture_graph_v2"
+        tools:srcCompat="@drawable/ic_empty_picture_graph_v2" />
 
-    <Button
-        android:id="@+id/button_camera"
-        android:layout_width="0dp"
-        android:layout_height="70dp"
-        android:onClick="takePhoto"
-        android:text="@string/take_photo"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button_gallery"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/button_gallery"
-        android:layout_width="0dp"
-        android:layout_height="70dp"
-        android:onClick="openGallery"
-        android:text="@string/gallery"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <View
+        android:id="@+id/divider3"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="?android:attr/listDivider"
+        android:forceDarkAllowed="true"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button_camera" />
-
-    <Button
-        android:id="@+id/button_process"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:text="@string/process"
-        app:layout_constraintBottom_toTopOf="@+id/button_gallery"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

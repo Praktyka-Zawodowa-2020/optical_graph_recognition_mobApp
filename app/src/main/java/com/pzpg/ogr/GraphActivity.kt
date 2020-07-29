@@ -2,6 +2,8 @@ package com.pzpg.ogr
 
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.util.Xml
 import android.view.LayoutInflater
@@ -10,14 +12,19 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import com.pzpg.ogr.graph.XmlParser
 import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node
-import java.io.*
+import java.io.File
+import java.io.IOException
+import java.io.PrintWriter
+import java.io.StringWriter
 
 
 abstract class GraphActivity : AppCompatActivity() {
@@ -33,15 +40,57 @@ abstract class GraphActivity : AppCompatActivity() {
 
         val data = intent.data
         var graph: Graph? = null
-        data?.let {
-            graph = readGraphGraphml(it)
+
+        Log.i("GraphActivity", data.toString())
+
+        data?.let {uri->
+            val path = getRealPath(uri)
+            path?.let {pathFile ->
+                when(File(pathFile).extension){
+                    "gml", "graphml" -> {
+                        graph = readGraphGraphml(uri)
+                    }
+                    else -> {
+                        Toast.makeText(this, "format not supported", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }
+            }
         }
+
 
         graph?.let {
             setupAdapter(graph!!)
         }
     }
 
+    private fun getRealPath(uri: Uri): String?{
+        var realPath: String? = null
+        contentResolver.query(uri, null,
+            null,
+            null,
+            null,
+            null)?.use { cursor->
+            cursor.moveToNext()
+            val indexData = cursor.getColumnIndex("_data")
+
+            if(indexData > 0){
+                realPath = cursor.getString(indexData)
+            }
+        }
+
+        if(realPath == null){
+            try {
+
+                realPath = File(uri.toString()).absolutePath
+
+            }catch (e: java.lang.Exception){
+                Log.e("EXCEPTION", e.toString())
+            }
+        }
+
+        return realPath
+    }
 
     /*private fun setupFab(graph: Graph) {
         val addButton = findViewById<FloatingActionButton>(R.id.addNode)
@@ -112,7 +161,7 @@ abstract class GraphActivity : AppCompatActivity() {
             }
         }
 
-        graphView.setAdapter(adapter as GraphAdapter<GraphView.ViewHolder>)
+        graphView.adapter = adapter as GraphAdapter<GraphView.ViewHolder>
         graphView.onItemClickListener =
             OnItemClickListener { parent: AdapterView<*>?, view: View?, position: Int, id: Long ->
                 currentNode = adapter.getItem(position) as Node
@@ -208,7 +257,7 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
-    fun readGraphGraphml(uri: Uri): Graph?{
+    private fun readGraphGraphml(uri: Uri): Graph?{
 
         val inputStream = contentResolver.openInputStream(uri)
         val parser = XmlParser()

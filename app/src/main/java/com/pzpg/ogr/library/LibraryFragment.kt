@@ -1,19 +1,21 @@
-package com.pzpg.ogr.ui.library
+package com.pzpg.ogr.library
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzpg.ogr.R
-import com.pzpg.ogr.ui.library.listContent.ListContent
+import com.pzpg.ogr.library.listContent.ListContent
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import java.io.File
 
@@ -53,7 +55,7 @@ class LibraryFragment : Fragment(),
         ListContent.reset()
         var pos = 1
         graphs?.forEach {
-            val item = ListContent.createListItem(pos, it.name)
+            val item = ListContent.createListItem(pos, it.name, it.toUri())
             ListContent.addItem(item)
             pos += 1
         }
@@ -63,10 +65,12 @@ class LibraryFragment : Fragment(),
 
         val recyclerView:View = root.findViewById(R.id.list)
         val emptyView:View = root.findViewById(R.id.empty_view)
-        
-        if (graphs.isEmpty()){
-            recyclerView.visibility = GONE
-            emptyView.visibility = VISIBLE
+
+        graphs?.let {
+            if (graphs.isEmpty()){
+                recyclerView.visibility = GONE
+                emptyView.visibility = VISIBLE
+            }
         }
 
         // Set the adapter
@@ -76,44 +80,31 @@ class LibraryFragment : Fragment(),
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter =
-                    MyItemGraphRecyclerViewAdapter(
+                adapter = MyItemGraphRecyclerViewAdapter(
                         ListContent.ITEMS,
                         cl
                     )
             }
         }
-
-
         return root
     }
 
-    private fun getListGraphs(): Array<File>{
-        return requireActivity().getExternalFilesDir("graph")!!.listFiles()
+    private fun getListGraphs(): Array<File>?{
+        return requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)!!.listFiles()
     }
 
     companion object {
-
-        // TODO: Customize parameter argument names
         const val ARG_COLUMN_COUNT = "column-count"
-
-        // TODO: Customize parameter initialization
-        @JvmStatic
-        fun newInstance(columnCount: Int) =
-            LibraryFragment().apply {
-                arguments = Bundle().apply {
-                    putInt(ARG_COLUMN_COUNT, columnCount)
-                }
-            }
     }
 
     override fun onClick(position: Int) {
         val item = ListContent.ITEM_MAP[ (position + 1).toString()]
-        Intent(requireActivity(), FruchtermanReingoldActivity::class.java).also { graphActivity->
-            Log.d("CLICK", "$item ; POSITION: $position")
-            graphActivity.putExtra("EXTRA_GRAPH_NAME", item.toString())
-            graphActivity.putExtra("EXTRA_GRAPH_EXTENSION", "gml")
-            startActivity(graphActivity)
+        if (item != null) {
+            Log.i("onClick", item.uri.toString())
+            Intent(requireActivity(), FruchtermanReingoldActivity::class.java).also { graphActivity->
+                graphActivity.data = item.uri
+                startActivity(graphActivity)
+            }
         }
     }
 }

@@ -1,10 +1,9 @@
-package com.pzpg.ogr.ui.takePicture
+package com.pzpg.ogr.takePicture
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
-import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -47,6 +46,7 @@ class TakePictureFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupPermissions()
+
     }
 
     override fun onCreateView(
@@ -56,9 +56,19 @@ class TakePictureFragment : Fragment() {
         val view: View = inflater.inflate(R.layout.fragment_take_picture, container, false)
         imageView = view.findViewById(R.id.imageView)
 
-        viewModel = ViewModelProviders.of(this).get(TakePictureViewModel::class.java)
-        imageView.setImageBitmap(viewModel.image)
 
+        viewModel = ViewModelProviders.of(this).get(TakePictureViewModel::class.java)
+        if(viewModel.uri != null){
+            setImage(viewModel.uri!!)
+        }else{
+            imageView.setImageResource(R.drawable.ic_empty_picture_graph_v2)
+        }
+
+        photoUri = viewModel.uri
+        currentPhotoPath = viewModel.path
+
+        Log.i("PATH", currentPhotoPath.toString())
+        Log.i("URI", photoUri.toString())
 
         imageView.setOnClickListener {
             editPhoto(it)
@@ -88,7 +98,8 @@ class TakePictureFragment : Fragment() {
     private fun goProcess() {
         val account = GoogleSignIn.getLastSignedInAccount(requireActivity())
         if (account != null) {
-            if (photoUri != null) {
+            if (currentPhotoPath != null) {
+                Log.i(TAG, currentPhotoPath.toString())
                 Intent(requireContext(), ProcessActivity::class.java).also {
                     it.putExtra("EXTRA_PHOTO_PATH", currentPhotoPath)
                     startActivity(it)
@@ -134,6 +145,7 @@ class TakePictureFragment : Fragment() {
         val storageDir: File? = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(prefix,extension,storageDir).apply {
             currentPhotoPath = absolutePath
+            viewModel.path = currentPhotoPath
         }
     }
 
@@ -153,6 +165,7 @@ class TakePictureFragment : Fragment() {
                         "com.pzpg.org.fileprovider",
                         it
                     )
+                    viewModel.uri = photoUri
 
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
                     startActivityForResult(takePictureIntent, REQUEST_CAMERA_PHOTO)
@@ -200,20 +213,6 @@ class TakePictureFragment : Fragment() {
         }
     }
 
-    private fun getRealPathFromURI(contentURI: Uri?): String? {
-        val projection = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor: Cursor = requireActivity().managedQuery(
-            contentURI, projection, null,
-            null, null
-        )
-            ?: return null
-        val column_index = cursor
-            .getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-        return if (cursor.moveToFirst()) {
-            cursor.getString(column_index)
-        } else null
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -251,8 +250,7 @@ class TakePictureFragment : Fragment() {
                                 "com.pzpg.org.fileprovider",
                                 it
                             )
-
-
+                            viewModel.uri = photoUri
 
                             val source = requireActivity().contentResolver.openInputStream(imageURI)
                             val destination: OutputStream = FileOutputStream(destinationFile)
@@ -276,9 +274,16 @@ class TakePictureFragment : Fragment() {
             EDIT_INTENT -> {
                 if (resultCode == AppCompatActivity.RESULT_OK) {
                     if(photoUri != null)
+                        viewModel.uri = photoUri
                         setImage(photoUri!!)
                 }
             }
         }
+    }
+
+    companion object{
+        const val REQUEST_CAMERA_PHOTO = 1
+        const val REQUEST_GALLERY_PHOTO = 2
+        const val EDIT_INTENT = 3
     }
 }

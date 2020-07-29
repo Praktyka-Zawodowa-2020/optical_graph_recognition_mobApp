@@ -11,7 +11,6 @@ open class RequestServerException(message: String?): Exception(message)
 /**
  * BadRequestException class to throw this when request message is invalid for server
  * Has thrown when code status of the request is 400
- * inherited from RequestServerException
  * @param message a message to show, inherited from Exception standard class
  */
 class BadRequestException(message: String?): RequestServerException(message)
@@ -19,7 +18,6 @@ class BadRequestException(message: String?): RequestServerException(message)
 /**
  * UnauthorizedException class to throw this when user has not authorized
  * Has thrown when code status of the request is 401
- * inherited from RequestServerException
  * @param message a message to show, inherited from Exception standard class
  */
 class UnauthorizedException(message: String?): RequestServerException(message)
@@ -27,7 +25,12 @@ class UnauthorizedException(message: String?): RequestServerException(message)
 /**
  * BadRequestException class to throw this when method of request is not allowed
  * Has thrown when code status of the request is 405
- * inherited from RequestServerException
  * @param message a message to show, inherited from Exception standard class
  */
 class NotAllowedMethodException(message: String?): RequestServerException(message)
+
+/**
+ * Has thrown when code status of the request is -1
+ * @param message a message to show, inherited from Exception standard class
+ */
+class TimeOutException(message: String?): RequestServerException(message)

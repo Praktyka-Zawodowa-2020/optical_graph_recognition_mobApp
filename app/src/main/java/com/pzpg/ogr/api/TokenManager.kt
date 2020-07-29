@@ -27,4 +27,12 @@ class TokenManager(context: Context) {
     fun getRefreshToken(): String? {
         return sharedPref.getString("refreshToken", null)
     }
+
+    fun clear(){
+        with(sharedPref.edit()) {
+            putString("jwtToken", null)
+            putString("refreshToken", null)
+            commit()
+        }
+    }
 }

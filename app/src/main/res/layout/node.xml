@@ -3,18 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
-    android:padding="10dp">
+    android:layout_margin="10dp">
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:background="@drawable/node_style"
+        android:gravity="center_horizontal|center_vertical"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="@android:color/white"
+        android:textSize="10sp"
         android:textStyle="bold"
-        android:gravity="center_horizontal|center_vertical"
         tools:text="0" />
 
 </LinearLayout>
