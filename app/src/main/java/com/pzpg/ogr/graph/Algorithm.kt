@@ -20,6 +20,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
+/***
+ * Same algorithm that we can find here link below, with an added line in method [randomize]
+ * that helps to save the position of the node of the recognized graph GraphML.
+ *
+ * https://github.com/Team-Blox/GraphView/blob/master/graphview/src/main/java/de/blox/graphview/energy/FruchtermanReingoldAlgorithm.kt
+ */
+
 class Algorithm(private val iterations: Int = DEFAULT_ITERATIONS): Layout{
 
     private var edgeRenderer: EdgeRenderer = ArrowEdgeRenderer()
@@ -31,6 +38,7 @@ class Algorithm(private val iterations: Int = DEFAULT_ITERATIONS): Layout{
     private var t: Float = 0.toFloat()
     private var attraction_k: Float = 0.toFloat()
     private var repulsion_k: Float = 0.toFloat()
+
 
     private fun cool(currentIteration: Int) {
         t *= (1.0f - currentIteration / iterations.toFloat())
@@ -109,10 +117,10 @@ class Algorithm(private val iterations: Int = DEFAULT_ITERATIONS): Layout{
         val nodesVisited = ArrayList<Node>()
         val nodeClusters = ArrayList<NodeCluster>()
 
-        //Look to the randomization function
-        /*graph.nodes.forEach { node ->
+
+        graph.nodes.forEach { node ->
             node.setPosition(VectorF(node.x - x, node.y - y))
-        }*/
+        }
 
         graph.nodes.forEach { node ->
             if (nodesVisited.contains(node)) {
@@ -225,14 +233,23 @@ class Algorithm(private val iterations: Int = DEFAULT_ITERATIONS): Layout{
         edgeRenderer.render(canvas, graph, linePaint)
     }
 
+
+    /***
+     * Position randomization for nodes without them
+     *
+     */
     private fun randomize(nodes: List<Node>) {
         nodes.forEach { node ->
             // create meta data for each node
             disps[node] = VectorF()
-            /*node.setPosition(
-                randInt(rand, 0, width / 2).toFloat(),
-                randInt(rand, 0, height / 2).toFloat()
-            )*/
+
+            //if the node has no position defined when reading the file, randomize it.
+            if(node.position == VectorF())
+                node.setPosition(
+                    randInt(rand, 0, width / 2).toFloat(),
+                    randInt(rand, 0, height / 2).toFloat()
+                )
+
             disps[node] = VectorF()
 
             //need to check if the node has a position and then decide to position randomization

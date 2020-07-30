@@ -1,10 +1,8 @@
 package com.pzpg.ogr.graph
 
-import com.pzpg.ogr.GraphActivity
 import de.blox.graphview.Graph
 import de.blox.graphview.GraphView
 import de.blox.graphview.Node
-import de.blox.graphview.energy.FruchtermanReingoldAlgorithm
 import de.blox.graphview.edgerenderer.StraightEdgeRenderer
 
 class FruchtermanReingoldActivity: GraphActivity() {
