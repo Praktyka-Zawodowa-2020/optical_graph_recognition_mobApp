@@ -40,7 +40,7 @@ class ProcessActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_process)
-        requestManager = RequestManager(this)
+
         supportActionBar?.title = "Process";
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
         val path = intent.getStringExtra("EXTRA_PHOTO_PATH")
@@ -49,7 +49,7 @@ class ProcessActivity : AppCompatActivity() {
         Log.i("ProcessActivity", path.toString())
 
         if(path != null && myAccount != null){
-
+            requestManager = RequestManager(this, myAccount)
             val imageView: ImageView = findViewById(R.id.imageView2)
             val textViewName: TextView = findViewById(R.id.textView_photoName)
 
@@ -64,7 +64,7 @@ class ProcessActivity : AppCompatActivity() {
                 .into(imageView)
 
         }else{
-            Toast.makeText(this, "Need a path to file", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Need a path to file or google signIn", Toast.LENGTH_LONG).show()
             finish()
         }
     }
@@ -116,6 +116,7 @@ class ProcessActivity : AppCompatActivity() {
         val buttonShareGSix = findViewById<Button>(R.id.button_shareGsix)
         buttonShareGml.isEnabled = false
         buttonShareGSix.isEnabled = false
+        openButton.isEnabled = false
 
         val finishContainer = findViewById<ConstraintLayout>(R.id.finish_container)
         processButton.isEnabled = false
@@ -140,6 +141,7 @@ class ProcessActivity : AppCompatActivity() {
                         showInfo("Get graph file GraphML")
                         uriGraphMl = getUriForTempFile(tempFile, GraphFormat.GraphML)
                         buttonShareGml.isEnabled = true
+                        openButton.isEnabled = true
                     }
                     showInfo("Process image Graph6")
                     val graphTempFileGSix =

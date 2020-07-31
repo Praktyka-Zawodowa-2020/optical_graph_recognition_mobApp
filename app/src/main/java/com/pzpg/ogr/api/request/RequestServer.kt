@@ -49,8 +49,8 @@ class RequestServer(private val serverUrl: String){
                 val ex = result.getException()
 
                 when(response.statusCode){
-                    400 -> throw BadRequestException("Not valid data in request")
-                    -1 -> throw TimeOutException("Server is not available")
+                    400 -> throw BadRequestException("Not valid data in request : ${ex.message}")
+                    -1 -> throw TimeOutException("Server is not available : ${ex.message}")
                     else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
                 }
             }
