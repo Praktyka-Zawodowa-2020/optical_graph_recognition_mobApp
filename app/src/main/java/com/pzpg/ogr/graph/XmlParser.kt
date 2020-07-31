@@ -14,10 +14,10 @@ class XmlParser{
 
     @Throws(XmlPullParserException::class, IOException::class)
     fun parse(inputStream: InputStream): Graph {
-        inputStream.use { inputStream ->
+        inputStream.use {
             val parser: XmlPullParser = Xml.newPullParser()
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
-            parser.setInput(inputStream, null)
+            parser.setInput(it, null)
             parser.nextTag()
             return readGraph(parser)
         }
@@ -30,6 +30,7 @@ class XmlParser{
         val arrNode = ArrayList<Node>()
 
         var curNode: Node? = null
+        var dataKey: String? = null
 
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             when(parser.eventType){
@@ -39,11 +40,18 @@ class XmlParser{
                             val id = parser.getAttributeValue(null, "id")
                             curNode = Node(id)
                         }
+                        // tag supported yEd
                         "y:Geometry"->
                         {
-                            val x = parser.getAttributeValue(null, "x")
-                            val y = parser.getAttributeValue(null, "y")
-                            curNode!!.setPosition(x.toFloat(), y.toFloat())
+                            if (curNode != null){
+                                val x = parser.getAttributeValue(null, "x")
+                                val y = parser.getAttributeValue(null, "y")
+                                curNode.setPosition(x.toFloat(), y.toFloat())
+                            }
+                        }
+                        // tag supported http://koala.os.niwa.gda.pl/zgred/zgred.html
+                        "data" -> {
+                            dataKey = parser.getAttributeValue(null, "key")
                         }
                         "edge" -> {
                             val sourceId = parser.getAttributeValue(null, "source")
@@ -56,12 +64,23 @@ class XmlParser{
                         }
                     }
                 }
+                XmlPullParser.TEXT ->{
+                    val value = parser.text
+                    if( curNode != null) {
+                        when(dataKey){
+                            "x" -> curNode.x = value.toFloat()
+                            "y" -> curNode.y = value.toFloat()
+                        }
+                    }
+                    dataKey = null
+                }
                 XmlPullParser.END_TAG -> {
                     when(parser.name){
                         "node" -> {
                             if (curNode != null) {
                                 arrNode.add(curNode)
                             }
+                            curNode = null
                         }
                     }
                 }

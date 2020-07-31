@@ -43,7 +43,7 @@ class SignInFragmentActivity : FragmentActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_activity_sign_in)
 
-        requestManager = RequestManager(this)
+
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestScopes(Scope(Scopes.DRIVE_FULL))
@@ -81,7 +81,7 @@ class SignInFragmentActivity : FragmentActivity(){
 
     fun clickGetToken(view: View){
         myAccount?.let {
-            getToken(it)
+            getToken()
         }
     }
 
@@ -147,8 +147,9 @@ class SignInFragmentActivity : FragmentActivity(){
         try {
             myAccount = completedTask.getResult(ApiException::class.java)
             myAccount?.let {
+                requestManager = RequestManager(this, it)
                 textView2.text = "Hello: ${it.displayName}"
-                getToken(it)
+                getToken()
             }
         } catch (e: ApiException) {
             sign_in_button.isEnabled = true
@@ -159,7 +160,7 @@ class SignInFragmentActivity : FragmentActivity(){
 
 
 
-    private fun getToken(account: GoogleSignInAccount)
+    private fun getToken()
     {
         Log.i("getToken", "getToken IN")
         showInfo("connecting to server...")
@@ -168,7 +169,7 @@ class SignInFragmentActivity : FragmentActivity(){
         val currentActivity = this
         CoroutineScope(Dispatchers.Main).launch{
 
-            if(requestManager.authenticate(account)){
+            if(requestManager.authenticate()){
                 finish()
             }else {
                 val message = "Problem with the server connecting..."

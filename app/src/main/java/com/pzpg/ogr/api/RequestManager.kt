@@ -3,6 +3,7 @@ package com.pzpg.ogr.api
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.R
 import com.pzpg.ogr.api.request.*
@@ -18,17 +19,17 @@ import kotlinx.coroutines.Dispatchers
  * @author github.com/Graidaris
  */
 
-class RequestManager(val context: Context) {
+class RequestManager(private val context: Context, private val account: GoogleSignInAccount) {
     private val tokenManager: TokenManager = TokenManager(context)
+    private val urlServer = context.getString(R.string.url_server)
 
     /**
      * Suspend fun to called from a coroutine, required for user authentication to the server.
      *
-     * @param[account] has GoogleSignInAccount type
      * @return[Boolean] indicates successful authentication on the server
      */
-    suspend fun authenticate(account: GoogleSignInAccount): Boolean = withContext(Dispatchers.Main){
-        val urlServer = context.getString(R.string.url_server)
+    suspend fun authenticate(): Boolean = withContext(Dispatchers.Main){
+
         try {
             val result = RequestServer(urlServer).authorize(account)
             tokenManager.setJwtToken(result.getString("jwtToken"))
@@ -37,6 +38,7 @@ class RequestManager(val context: Context) {
         }
         catch (e: BadRequestException){
             Log.e("BadRequestException", e.toString())
+            Toast.makeText(context, "you need to re-login in the settings", Toast.LENGTH_LONG).show()
             false
         }
         catch (e: TimeOutException){
@@ -55,17 +57,34 @@ class RequestManager(val context: Context) {
      * @return Boolean which equal True (when the token has been refreshed) or False (when something went wrong)
      */
     suspend fun refresh(): Boolean = withContext(Dispatchers.Main){
-        val urlServer = context.getString(R.string.url_server)
-        val refreshToken = tokenManager.getRefreshToken()
+        Log.d("refresh", "start")
+
+        val account = GoogleSignIn.getLastSignedInAccount(context) ?: return@withContext false
+
+        var refreshToken = tokenManager.getRefreshToken()
+
+        if (refreshToken == null){
+            authenticate()
+            refreshToken = tokenManager.getRefreshToken() ?: return@withContext false
+        }
+
         try {
-            val result = RequestServer(urlServer).refreshToken(refreshToken!!)
+            val result = RequestServer(urlServer).refreshToken(refreshToken)
             tokenManager.setJwtToken(result.getString("jwtToken"))
             tokenManager.setRefreshToken(result.getString("refreshToken"))
+            Log.d("refresh", "done")
             true
         }
         catch (e: BadRequestException){
-            Log.e("BadRequestException", e.toString())
-            false
+            Log.d("refresh", "try authenticate")
+            if(authenticate()){
+                Log.d("refresh", "done")
+                true
+            }
+            else{
+                Log.e("BadRequestException", e.toString())
+                false
+            }
         }
         catch (e: TimeOutException){
             Log.e("TimeOutException", e.toString())
@@ -83,9 +102,14 @@ class RequestManager(val context: Context) {
      * @return guid: String of uploaded image or none, when something went wrong
      */
     suspend fun uploadImage(path: String, name: String): String? = withContext(Dispatchers.Main){
+
+        if(!checkTokens())
+            return@withContext null
+
         val jwtToken = tokenManager.getJwtToken()
+
         try {
-            RequestServer(context.getString(R.string.url_server))
+            RequestServer(urlServer)
                 .uploadImage(path, name, jwtToken!!)
         }
         catch (e: UnauthorizedException){
@@ -115,14 +139,15 @@ class RequestManager(val context: Context) {
          format: GraphFormat = GraphFormat.GraphML
     ): File? = withContext(Dispatchers.Main){
 
-        val jwtToken = tokenManager.getJwtToken()
-        Log.i("processImage PATH", path)
-        Log.i("processImage NAME", name)
+        if(!checkTokens())
+            return@withContext null
 
+        val jwtToken = tokenManager.getJwtToken()
+        Log.i("processImage", "start")
 
         try {
             val guid = uploadImage(path, name) ?: return@withContext null
-            RequestServer(context.getString(R.string.url_server))
+            RequestServer(urlServer)
                 .processImage(guid, jwtToken!!, mode, format)
 
         }catch (e: UnauthorizedException){
@@ -142,10 +167,11 @@ class RequestManager(val context: Context) {
     ): File? = withContext(Dispatchers.Main){
 
         val jwtToken = tokenManager.getJwtToken()
-        Log.i("processImage GUID", guid)
+
+        Log.d("processImage GUID", guid)
 
         try {
-            RequestServer(context.getString(R.string.url_server))
+            RequestServer(urlServer)
                 .processImage(guid, jwtToken!!, mode, format)
 
         }catch (e: UnauthorizedException){
@@ -158,13 +184,10 @@ class RequestManager(val context: Context) {
         }
     }
 
-
-
-
     suspend fun getHistory(): JSONArray?{
         val jwtToken = tokenManager.getJwtToken()
         return try{
-            RequestServer(context.getString(R.string.url_server))
+            RequestServer(urlServer)
                 .getHistory(jwtToken!!)
         }catch (e: UnauthorizedException){
             val refreshed = refresh()
@@ -173,6 +196,19 @@ class RequestManager(val context: Context) {
         }catch (e: RequestServerException){
             Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
             null
+        }
+    }
+
+    private suspend fun checkTokens(): Boolean = withContext(Dispatchers.Main){
+        Log.d("checkTokens", "start")
+        val jwtToken = tokenManager.getJwtToken()
+        val refreshToken = tokenManager.getRefreshToken()
+        if (jwtToken != null && refreshToken != null){
+            Log.d("checkTokens", "ok")
+            return@withContext true
+        }else{
+            Log.d("checkTokens", "no token, try refresh")
+            refresh()
         }
     }
 }

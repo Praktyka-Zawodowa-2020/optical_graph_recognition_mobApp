@@ -1,6 +1,7 @@
 package com.pzpg.ogr
 
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -39,8 +40,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        requestManager = RequestManager(requireContext())
+        account = GoogleSignIn.getLastSignedInAccount(requireActivity())
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
@@ -48,7 +48,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         signOutButton.setOnClickListener(this)
 
 
-        account = GoogleSignIn.getLastSignedInAccount(requireActivity())
+
         updateUI(view)
         return view
     }
@@ -70,29 +70,16 @@ class SettingsFragment : Fragment(), View.OnClickListener {
             buttonSignInOut.text = "sign out"
         }
         else{
-            avatarView.setImageResource(R.mipmap.empty_avatar)
+            try{
+                avatarView.setImageResource(R.mipmap.empty_avatar)
+            }catch (e: Resources.NotFoundException){
+                avatarView.setBackgroundColor(0)
+            }
+
             accountTextView.text = "You are not sign in"
             buttonSignInOut.text = "sign in"
         }
     }
-
-    private fun getToken(account: GoogleSignInAccount?)
-    {
-        val button = requireView().findViewById<Button>(R.id.button_signInOut)
-
-        if(account != null){
-            button.isEnabled = false
-            Log.i("getToken","CoroutineScope")
-            CoroutineScope(Dispatchers.Main).launch {
-                Log.i("CoroutineScope","start coroutine scope")
-                requestManager.authenticate(account)
-                Log.i("CoroutineScope","end coroutine scope")
-                button.isEnabled = true
-                updateUI(requireView())
-            }
-        }
-    }
-
 
 
     override fun onClick(view: View) {
@@ -128,11 +115,6 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                         SIGN_OUT_ACTIVITY
                     )
                 }
-            }
-            REQUEST_SIGN_IN_SETTING -> view?.also {
-                account = GoogleSignIn.getLastSignedInAccount(requireActivity())
-                getToken(account)
-
             }
             SIGN_OUT_ACTIVITY -> view?.also {
                 account = GoogleSignIn.getLastSignedInAccount(requireActivity())

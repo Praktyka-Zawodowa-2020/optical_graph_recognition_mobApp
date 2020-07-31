@@ -1,9 +1,7 @@
-package com.pzpg.ogr
+package com.pzpg.ogr.graph
 
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.provider.OpenableColumns
 import android.util.Log
 import android.util.Xml
 import android.view.LayoutInflater
@@ -14,9 +12,8 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
-import com.pzpg.ogr.graph.XmlParser
+import com.pzpg.ogr.R
 import de.blox.graphview.Graph
 import de.blox.graphview.GraphAdapter
 import de.blox.graphview.GraphView
@@ -44,17 +41,21 @@ abstract class GraphActivity : AppCompatActivity() {
         Log.i("GraphActivity", data.toString())
 
         data?.let {uri->
-            val path = getRealPath(uri)
-            path?.let {pathFile ->
-                when(File(pathFile).extension){
+            val file = getFile(uri)
+
+            if (file != null){
+                when(file.extension){
                     "gml", "graphml" -> {
-                        graph = readGraphGraphml(uri)
+                        graph = readGraphGraphMl(uri)
                     }
                     else -> {
-                        Toast.makeText(this, "format not supported", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Format not supported", Toast.LENGTH_SHORT).show()
                         finish()
                     }
                 }
+            }else{
+                Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG).show()
+                finish()
             }
         }
 
@@ -64,7 +65,8 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
-    private fun getRealPath(uri: Uri): String?{
+    private fun getFile(uri: Uri): File? {
+        var file: File? = null
         var realPath: String? = null
         contentResolver.query(uri, null,
             null,
@@ -81,15 +83,14 @@ abstract class GraphActivity : AppCompatActivity() {
 
         if(realPath == null){
             try {
-
-                realPath = File(uri.toString()).absolutePath
-
+                file = File(uri.toString())
             }catch (e: java.lang.Exception){
                 Log.e("EXCEPTION", e.toString())
+                return  null
             }
         }
 
-        return realPath
+        return file
     }
 
     /*private fun setupFab(graph: Graph) {
@@ -115,10 +116,7 @@ abstract class GraphActivity : AppCompatActivity() {
     private fun setupAdapter(graph: Graph){
         graphView = findViewById(R.id.graph)
 
-
-
         setLayout(graphView)
-
 
         adapter = object : GraphAdapter<GraphView.ViewHolder>(graph) {
             override fun getCount(): Int {
@@ -257,7 +255,7 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
-    private fun readGraphGraphml(uri: Uri): Graph?{
+    private fun readGraphGraphMl(uri: Uri): Graph?{
 
         val inputStream = contentResolver.openInputStream(uri)
         val parser = XmlParser()

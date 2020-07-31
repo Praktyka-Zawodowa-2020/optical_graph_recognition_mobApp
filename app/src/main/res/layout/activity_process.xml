@@ -101,16 +101,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <TextView
-            android:id="@+id/textView_graphInfo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Process is finished"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <LinearLayout
             android:id="@+id/linearLayout2"
             android:layout_width="0dp"

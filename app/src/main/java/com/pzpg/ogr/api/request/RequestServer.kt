@@ -32,7 +32,7 @@ class RequestServer(private val serverUrl: String){
      */
     suspend fun authorize(account: GoogleSignInAccount): JSONObject = withContext(Dispatchers.IO){
         val endpoint = "/users/authenticate"
-
+        Log.i("authorize", serverUrl + endpoint)
         val msg = JSONObject()
         msg.accumulate("idToken", account.idToken)
         msg.accumulate("authCode", account.serverAuthCode)
@@ -49,8 +49,8 @@ class RequestServer(private val serverUrl: String){
                 val ex = result.getException()
 
                 when(response.statusCode){
-                    400 -> throw BadRequestException("Not valid data in request")
-                    -1 -> throw TimeOutException("Server is not available")
+                    400 -> throw BadRequestException("Not valid data in request : ${ex.message}")
+                    -1 -> throw TimeOutException("Server is not available : ${ex.message}")
                     else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
                 }
             }
@@ -77,7 +77,7 @@ class RequestServer(private val serverUrl: String){
      */
     suspend fun refreshToken(rToken: String): JSONObject = withContext(Dispatchers.IO) {
         val endpoint = "/users/refresh-token"
-
+        Log.i("refreshToken", serverUrl + endpoint)
         val body = JSONObject()
         body.accumulate("token", rToken)
 
@@ -124,7 +124,7 @@ class RequestServer(private val serverUrl: String){
                             name: String,
                             jwtToken: String): String = withContext(Dispatchers.IO){
         val endpoint = "/api/graphs/create"
-
+        Log.i("uploadImage", serverUrl + endpoint)
         val file = FileDataPart.from(dir, name, name="file")
 
         Log.i("uploadImage", file.toString())
@@ -174,7 +174,7 @@ class RequestServer(private val serverUrl: String){
                              mode: ProcessMode?,
                              format: GraphFormat?) : File? = withContext(Dispatchers.IO){
         val endpoint = "/api/graphs/process/"
-
+        Log.i("processImage", serverUrl + endpoint)
         Log.i("processImage", format.toString())
 
         val parameters = ArrayList<Pair<String, String>>()

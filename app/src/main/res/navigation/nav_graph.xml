@@ -33,7 +33,7 @@
     </fragment>
     <activity
         android:id="@+id/graphActivity"
-        android:name="com.pzpg.ogr.GraphActivity"
+        android:name="com.pzpg.ogr.graph.GraphActivity"
         android:label="activity_graph"
         tools:layout="@layout/activity_graph" />
     <activity
