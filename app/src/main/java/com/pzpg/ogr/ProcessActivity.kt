@@ -7,22 +7,22 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.os.Message
 import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.pzpg.ogr.api.RequestManager
 import com.pzpg.ogr.api.request.GraphFormat
 import com.pzpg.ogr.api.request.ProcessMode
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
+import kotlinx.android.synthetic.main.activity_process.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,6 +60,8 @@ class ProcessActivity : AppCompatActivity() {
 
             Glide.with(this)
                 .load(path)
+                .diskCacheStrategy(DiskCacheStrategy.NONE )
+                .skipMemoryCache(true)
                 .into(imageView)
 
         }else{
@@ -81,14 +83,21 @@ class ProcessActivity : AppCompatActivity() {
 
     private fun getMode(): ProcessMode{
         val default = ProcessMode.GRID_BG
-        val radioGroup : RadioGroup = findViewById(R.id.radioGroup)
 
-        return when(radioGroup.checkedRadioButtonId){
+        return when(modeRadioGroup.checkedRadioButtonId){
             R.id.radioButton_auto -> default
             R.id.radioButton_clear -> ProcessMode.CLEAN_BG
             R.id.radioButton_grid -> ProcessMode.GRID_BG
             R.id.radioButton_printed -> ProcessMode.PRINTED
             else -> default
+        }
+    }
+
+    fun clickShare(view: View){
+        when(shareRadioGroup.checkedRadioButtonId){
+            R.id.radioButton_FGML -> shareMl()
+            R.id.radioButton_FG6 -> shareSix()
+            R.id.radioButton_CFG6 -> shareContentSix()
         }
     }
 
@@ -108,17 +117,7 @@ class ProcessActivity : AppCompatActivity() {
     fun process(view: View){
         val mode = getMode()
 
-        val processButton = findViewById<Button>(R.id.button_process)
-        val openButton = findViewById<Button>(R.id.button_openGraph)
 
-        val buttonShareGml = findViewById<Button>(R.id.button_shareGml)
-        val buttonShareGSix = findViewById<Button>(R.id.button_shareGsix)
-        buttonShareGml.isEnabled = false
-        buttonShareGSix.isEnabled = false
-        openButton.isEnabled = false
-
-        val finishContainer = findViewById<ConstraintLayout>(R.id.finish_container)
-        processButton.isEnabled = false
         val fileToProcess: File? = File(photoPath!!)
 
         showInfo("Start process")
@@ -139,8 +138,6 @@ class ProcessActivity : AppCompatActivity() {
                     graphTempFileGraphML?.let { tempFile ->
                         showInfo("Get graph file GraphML")
                         uriGraphMl = getUriForTempFile(tempFile, GraphFormat.GraphML)
-                        buttonShareGml.isEnabled = true
-                        openButton.isEnabled = true
                     }
                     showInfo("Process image Graph6")
                     val graphTempFileGSix =
@@ -149,34 +146,43 @@ class ProcessActivity : AppCompatActivity() {
                     graphTempFileGSix?.let { tempFile ->
                         showInfo("Get graph file Graph6")
                         uriGraphSix = getUriForTempFile(tempFile, GraphFormat.Graph6)
-                        buttonShareGSix.isEnabled = true
                     }
                 }
 
                 hideInfo()
-                finishContainer.visibility = VISIBLE
-                openButton.isEnabled = true
-                processButton.isEnabled = true
-                processButton.text = "reprocess"
             }
         }
     }
 
-    fun shareMl(view: View){
-        uriGraphMl?.let { share(it) }
+    private fun shareMl(){
+        uriGraphMl?.let { shareFile(it) }
     }
 
-    fun shareSix(view: View){
-        uriGraphSix?.let { share(it) }
+    private fun shareSix(){
+        uriGraphSix?.let { shareFile(it) }
     }
 
-    private fun share(uri: Uri){
+    private fun shareContentSix(){
+        uriGraphSix?.let { shareText(it) }
+    }
+
+    private fun shareText(uri: Uri){
+        Intent(Intent.ACTION_SEND).let {shareText ->
+            val content = contentResolver.openInputStream(uri)?.readBytes()?.toString(Charsets.UTF_8)
+            Log.d("shareText", content.toString())
+            shareText.type = "text/plain"
+            shareText.putExtra(Intent.EXTRA_TEXT, content);
+            startActivity(Intent.createChooser(shareText, null))
+        }
+    }
+
+    private fun shareFile(uri: Uri){
         val shareIntent = Intent(Intent.ACTION_SEND)
         val graphFile = File(uri.toString())
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
         shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
-        shareIntent.type = "application/xml"
+        shareIntent.type = "text/xml"
         shareIntent.flags = flags
         shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);
         shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via OGR");
