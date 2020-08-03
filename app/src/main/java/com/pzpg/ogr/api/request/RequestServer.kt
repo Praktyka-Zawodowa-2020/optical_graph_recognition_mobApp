@@ -196,7 +196,7 @@ class RequestServer(private val serverUrl: String){
                 Log.e("processImage", response.toString())
 
                 when(response.statusCode){
-                    400 -> throw BadRequestException("Not valid data in request")
+                    400 -> throw BadRequestException("Graph not found")
                     401 -> throw UnauthorizedException("User not authorized")
                     -1 -> throw TimeOutException("Server is not available")
                     else -> throw RequestServerException("Fuel ERROR: ${ex.message}")

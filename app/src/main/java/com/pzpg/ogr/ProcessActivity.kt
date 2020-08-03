@@ -126,7 +126,6 @@ class ProcessActivity : AppCompatActivity() {
 
         val fileToProcess: File? = File(photoPath!!)
 
-        showInfo("Start process")
 
         textView_process.style(R.style.LoadingInfo)
         textView_downloadGml.style(R.style.LoadingInfo)
@@ -134,7 +133,6 @@ class ProcessActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
-                showInfo("Upload image")
                 Log.i("process", "process image: $fileToProcess")
 
                 if (guid == null){
@@ -148,7 +146,6 @@ class ProcessActivity : AppCompatActivity() {
 
                 if (guid != null) {
                     textView_uploadImage.style(R.style.DoneInfo)
-                    showInfo("download GraphML")
 
                     if (requestManager.processImage(guid!!, mode)){
                         textView_process.style(R.style.DoneInfo)
@@ -156,7 +153,6 @@ class ProcessActivity : AppCompatActivity() {
                             requestManager.downloadProcessedGraph(guid!!, GraphFormat.GraphML)
 
                         if(graphTempFileGraphML != null){
-                            showInfo("Get graph file GraphML")
                             uriGraphMl = getUriForTempFile(graphTempFileGraphML, GraphFormat.GraphML)
                             textView_downloadGml.style(R.style.DoneInfo)
                         }else{
@@ -164,13 +160,10 @@ class ProcessActivity : AppCompatActivity() {
                         }
 
 
-
-                        showInfo("download Graph6")
                         val graphTempFileGSix =
                             requestManager.downloadProcessedGraph(guid!!, GraphFormat.Graph6)
 
                         if (graphTempFileGSix != null){
-                            showInfo("Get graph file Graph6")
                             uriGraphSix = getUriForTempFile(graphTempFileGSix, GraphFormat.Graph6)
                             textView_downloadG6.style(R.style.DoneInfo)
                         }else{
@@ -183,8 +176,6 @@ class ProcessActivity : AppCompatActivity() {
                 }else{
                     textView_uploadImage.style(R.style.ErrorInfo)
                 }
-
-                hideInfo()
             }
         }
     }
