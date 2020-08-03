@@ -273,7 +273,7 @@ class Algorithm(private val iterations: Int = DEFAULT_ITERATIONS): Layout{
         k = (0.75 * sqrt((width * height / nodes.size.toFloat()).toDouble())).toFloat()
 
         attraction_k = 0.75f * k
-        repulsion_k = 0.75f * k
+        repulsion_k = 0.90f * k
 
         randomize(nodes)
 
