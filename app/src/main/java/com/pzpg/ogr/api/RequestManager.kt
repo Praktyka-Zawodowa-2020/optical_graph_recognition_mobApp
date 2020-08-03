@@ -217,6 +217,21 @@ class RequestManager(private val context: Context, private val account: GoogleSi
         }
     }
 
+    suspend fun deleteAll(): Boolean = withContext(Dispatchers.Main){
+        val jwtToken = tokenManager.getJwtToken()
+        try {
+            RequestServer(urlServer).deleteAll(jwtToken!!)
+            true
+        }catch (e: UnauthorizedException){
+            val refreshed = refresh()
+            if (refreshed) deleteAll()
+            else false
+        }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            false
+        }
+    }
+
     private suspend fun checkTokens(): Boolean = withContext(Dispatchers.Main){
         Log.d("checkTokens", "start")
         val jwtToken = tokenManager.getJwtToken()

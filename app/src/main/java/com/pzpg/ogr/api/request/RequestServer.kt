@@ -248,7 +248,7 @@ class RequestServer(private val serverUrl: String){
                 val ex = result.getException()
 
                 when(response.statusCode){
-                    400 -> throw BadRequestException("Not valid data in request")
+                    400 -> throw BadRequestException("Invalid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
                     -1 -> throw TimeOutException("Server is not available")
                     else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
@@ -276,7 +276,7 @@ class RequestServer(private val serverUrl: String){
                 val ex = result.getException()
 
                 when(response.statusCode){
-                    400 -> throw BadRequestException("Not valid data in request")
+                    400 -> throw BadRequestException("Invalid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
                     -1 -> throw TimeOutException("Server is not available")
                     else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
@@ -289,6 +289,33 @@ class RequestServer(private val serverUrl: String){
                 return@withContext resultToJson
             }
         }
+    }
+
+    suspend fun deleteAll(jwtToken: String) = withContext(Dispatchers.Main){
+        val endpoint = "/api/graphs/delete-all"
+
+        val (request, response, result) = Fuel.delete(serverUrl + endpoint)
+            .header(mapOf("authorization" to "Bearer $jwtToken"))
+            .responseString()
+
+        Log.i("deleteAll", response.statusCode.toString())
+
+        when (result) {
+            is com.github.kittinunf.result.Result.Failure -> {
+                val ex = result.getException()
+
+                when(response.statusCode){
+                    400 -> throw BadRequestException("Invalid data in request")
+                    401 -> throw UnauthorizedException("User not authorized")
+                    -1 -> throw TimeOutException("Server is not available")
+                    else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
+                }
+            }
+            is com.github.kittinunf.result.Result.Success -> {
+                Log.i("deleteAll", "Success")
+            }
+        }
+
     }
 
 }

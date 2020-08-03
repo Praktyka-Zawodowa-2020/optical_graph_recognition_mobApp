@@ -52,9 +52,11 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         val signOutButton = view.findViewById<Button>(R.id.button_signInOut)
         val cleanPic = view.findViewById<Button>(R.id.button_cleanPicture)
         val cleanDoc = view.findViewById<Button>(R.id.button_cleanDocs)
+        val removeAll = view.findViewById<Button>(R.id.button_removeFromServer)
         signOutButton.setOnClickListener(this)
         cleanPic.setOnClickListener(this)
         cleanDoc.setOnClickListener(this)
+        removeAll.setOnClickListener(this)
 
         picDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         graphDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
@@ -65,8 +67,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun calculateLocalData(view: View){
-        val prefS = "Size: "
+    private fun calculateLocalData(view: View) {
         Log.i("calculateLocalData", "start")
         view.let { it ->
             val graphInfoSize = it.findViewById<TextView>(R.id.textView_DocSize)
@@ -78,11 +79,22 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                 graphDir?.let { dir ->
                     val (size, count) = folderInfo(dir)
                     Log.i("Graph dir info", "Size=$size, Count=$count ")
-                    graphInfoSize?.let {sizeInfo ->
-                        sizeInfo.text = "Size: $size B"
+                    graphInfoSize?.let { sizeInfo ->
+                        var suf = "B"
+                        var sizeConv: Float = size.toFloat()
+                        if (size > 1000) {
+                            sizeConv /= 1000.0f
+                            suf = "KB"
+                        }
+                        if (size > 1000000) {
+                            sizeConv /= 1000.0f
+                            suf = "MB"
+                        }
+
+                        sizeInfo.text = "Size: $sizeConv $suf"
                     }
 
-                    graphCount?.let {countInfo ->
+                    graphCount?.let { countInfo ->
                         countInfo.text = "Graphs: $count"
                     }
                 }
@@ -90,11 +102,22 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                 picDir?.let { dir ->
                     val (size, count) = folderInfo(dir)
                     Log.i("Pic dir info", "Size=$size, Count=$count ")
-                    picInfoSize?.let {sizeInfo ->
-                        sizeInfo.text = "Size: $size B"
+                    picInfoSize?.let { sizeInfo ->
+                        var suf = "B"
+                        var sizeConv: Float = size.toFloat()
+                        if (size > 1000) {
+                            sizeConv /= 1000.0f
+                            suf = "KB"
+                        }
+                        if (size > 1000000) {
+                            sizeConv /= 1000.0f
+                            suf = "MB"
+                        }
+
+                        sizeInfo.text = "Size: $sizeConv $suf"
                     }
 
-                    picCount?.let {countInfo ->
+                    picCount?.let { countInfo ->
                         countInfo.text = "Pictures: $count"
                     }
                 }
@@ -106,38 +129,37 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         var length: Long = 0
         var count: Int = 0
 
-        directory.listFiles()?.forEach {file->
+        directory.listFiles()?.forEach { file ->
             if (file.isFile) {
                 length += file.length()
                 count += 1
-            }
-            else {
+            } else {
                 val (size, retCount) = folderInfo(file)
-                length+=size
-                count+=retCount
+                length += size
+                count += retCount
             }
         }
 
         return Pair(length, count)
     }
 
-    private fun cleanDir(dir: File){
-        dir.let{
-            it.listFiles()?.forEach {file->
-                if(file.isFile) file.delete()
-                else if(file.isDirectory) cleanDir(file)
+    private fun cleanDir(dir: File) {
+        dir.let {
+            it.listFiles()?.forEach { file ->
+                if (file.isFile) file.delete()
+                else if (file.isDirectory) cleanDir(file)
             }
         }
         calculateLocalData(requireView())
 
     }
 
-    private fun updateUI(view: View){
+    private fun updateUI(view: View) {
         val accountTextView = view.findViewById<TextView>(R.id.textView_infoAccount)
         val buttonSignInOut = view.findViewById<Button>(R.id.button_signInOut)
         val avatarView = view.findViewById<ImageView>(R.id.imageView4)
 
-        if (account != null){
+        if (account != null) {
             val avatarUri: Uri? = account?.photoUrl
             avatarUri?.let {
                 Glide.with(this)
@@ -147,11 +169,10 @@ class SettingsFragment : Fragment(), View.OnClickListener {
 
             accountTextView.text = account!!.displayName
             buttonSignInOut.text = "sign out"
-        }
-        else{
-            try{
+        } else {
+            try {
                 avatarView.setImageResource(R.mipmap.empty_avatar)
-            }catch (e: Resources.NotFoundException){
+            } catch (e: Resources.NotFoundException) {
                 avatarView.setBackgroundColor(0)
             }
 
@@ -160,27 +181,41 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         }
     }
 
+    private fun deleteServerData(){
+        val currActivity = requireActivity()
+        CoroutineScope(Dispatchers.Main).launch {
+            account?.let { acc->
+                RequestManager(currActivity, acc).deleteAll()
+            }
+        }
+    }
+
 
     override fun onClick(view: View) {
-        when(view.id){
+        when (view.id) {
             R.id.button_signInOut -> {
-                Intent(requireActivity(), SignInFragmentActivity::class.java).also { signInActivity ->
-                    if (account != null){
+                Intent(
+                    requireActivity(),
+                    SignInFragmentActivity::class.java
+                ).also { signInActivity ->
+                    if (account != null) {
                         signInActivity.putExtra(EXTRA_ACTION, EXTRA_SIGN_OUT)
-                        startActivityForResult(signInActivity,
+                        startActivityForResult(
+                            signInActivity,
                             REQUEST_SIGN_OUT_SETTING
                         )
-                    }else{
+                    } else {
                         signInActivity.putExtra(EXTRA_ACTION, EXTRA_SIGN_IN)
-                        startActivityForResult(signInActivity,
+                        startActivityForResult(
+                            signInActivity,
                             REQUEST_SIGN_IN_SETTING
                         )
                     }
                 }
             }
             R.id.button_cleanDocs -> {
-                graphDir?.let{
-                    CoroutineScope(Dispatchers.Main).launch{
+                graphDir?.let {
+                    CoroutineScope(Dispatchers.Main).launch {
                         val cleanDoc = view.findViewById<Button>(R.id.button_cleanDocs)
                         cleanDoc.isEnabled = false
                         cleanDir(it)
@@ -189,8 +224,8 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                 }
             }
             R.id.button_cleanPicture -> {
-                picDir?.let{
-                    CoroutineScope(Dispatchers.Main).launch{
+                picDir?.let {
+                    CoroutineScope(Dispatchers.Main).launch {
                         val cleanPic = view.findViewById<Button>(R.id.button_cleanPicture)
                         cleanPic.isEnabled = false
                         cleanDir(it)
@@ -198,36 +233,40 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                     }
                 }
             }
+            R.id.button_removeFromServer ->{
+                deleteServerData()
+            }
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        when(requestCode){
+        when (requestCode) {
             REQUEST_SIGN_OUT_SETTING -> view?.also {
                 account = null
                 updateUI(it)
 
-                Intent(requireActivity(), SignInFragmentActivity::class.java).also {intentSignIn ->
-                    startActivityForResult(intentSignIn,
+                Intent(requireActivity(), SignInFragmentActivity::class.java).also { intentSignIn ->
+                    startActivityForResult(
+                        intentSignIn,
                         SIGN_OUT_ACTIVITY
                     )
                 }
             }
             SIGN_OUT_ACTIVITY -> view?.also {
                 account = GoogleSignIn.getLastSignedInAccount(requireActivity())
-                if(account == null){
+                if (account == null) {
                     requireActivity().finish()
                     updateUI(it)
-                }else{
+                } else {
                     updateUI(it)
                 }
             }
         }
     }
 
-    companion object{
+    companion object {
         const val REQUEST_SIGN_OUT_SETTING = 1
         const val REQUEST_SIGN_IN_SETTING = 2
         const val SIGN_OUT_ACTIVITY = 3
