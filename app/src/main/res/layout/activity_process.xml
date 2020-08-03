@@ -124,7 +124,15 @@
                 android:id="@+id/textView_uploadImage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="upload image"
+                android:text="Upload image"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/textView_process"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Processing"
                 android:textColor="@color/black"
                 android:textSize="18sp" />
 
@@ -132,7 +140,7 @@
                 android:id="@+id/textView_downloadGml"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="download graphml"
+                android:text="Download graphml"
                 android:textColor="@color/black"
                 android:textSize="18sp" />
 
@@ -140,7 +148,7 @@
                 android:id="@+id/textView_downloadG6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="download graph6"
+                android:text="Download graph6"
                 android:textColor="@color/black"
                 android:textSize="18sp" />
 

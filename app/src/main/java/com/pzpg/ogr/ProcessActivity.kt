@@ -128,7 +128,7 @@ class ProcessActivity : AppCompatActivity() {
 
         showInfo("Start process")
 
-
+        textView_process.style(R.style.LoadingInfo)
         textView_downloadGml.style(R.style.LoadingInfo)
         textView_downloadG6.style(R.style.LoadingInfo)
 
@@ -151,7 +151,7 @@ class ProcessActivity : AppCompatActivity() {
                     showInfo("download GraphML")
 
                     if (requestManager.processImage(guid!!, mode)){
-
+                        textView_process.style(R.style.DoneInfo)
                         val graphTempFileGraphML =
                             requestManager.downloadProcessedGraph(guid!!, GraphFormat.GraphML)
 
@@ -176,6 +176,8 @@ class ProcessActivity : AppCompatActivity() {
                         }else{
                             textView_downloadG6.style(R.style.ErrorInfo)
                         }
+                    }else{
+                        textView_process.style(R.style.ErrorInfo)
                     }
 
                 }else{
