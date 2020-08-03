@@ -131,6 +131,8 @@ class ProcessActivity : AppCompatActivity() {
         textView_downloadGml.style(R.style.LoadingInfo)
         textView_downloadG6.style(R.style.LoadingInfo)
 
+        button_process.isEnabled = false
+
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
                 Log.i("process", "process image: $fileToProcess")
@@ -177,6 +179,8 @@ class ProcessActivity : AppCompatActivity() {
                     textView_uploadImage.style(R.style.ErrorInfo)
                 }
             }
+
+            button_process.isEnabled = true
         }
     }
 
