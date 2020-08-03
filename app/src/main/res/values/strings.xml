@@ -12,8 +12,9 @@
     <string name="WEB_ID">1043184567-plul3ds9456nvtvmtp4gqqcbgf3fq3hh.apps.googleusercontent.com</string>
 
 
-    <string name="url_server">https://35.246.171.86:443</string>
+    <!-- <string name="url_server">https://35.246.171.86:443</string> -->
 
+    <string name="url_server">https://35.246.171.86:443</string>
     <string name="user_preferences">user_pref</string>
     <string name="jwtToken">User_jwtToken</string>
     <string name="refreshToken">User_refreshToken</string>
