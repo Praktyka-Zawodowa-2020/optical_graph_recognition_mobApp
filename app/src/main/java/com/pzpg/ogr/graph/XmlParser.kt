@@ -82,6 +82,14 @@ class XmlParser{
                             }
                             curNode = null
                         }
+                        "graphml" -> {
+                            arrNode.forEach { localNode ->
+                                if(!graph.nodes.contains(localNode)){
+                                    graph.addNode(localNode)
+                                }
+                            }
+
+                        }
                     }
                 }
             }
