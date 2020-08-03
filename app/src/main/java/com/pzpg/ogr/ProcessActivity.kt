@@ -31,7 +31,7 @@ import java.io.File
 class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
     private var account: GoogleSignInAccount? = null
-    private lateinit var requestManager : RequestManager
+    private lateinit var requestManager: RequestManager
     private var uriGraphSix: Uri? = null
     private var uriGraphMl: Uri? = null
 
@@ -47,7 +47,7 @@ class ProcessActivity : AppCompatActivity() {
 
         Log.i("ProcessActivity", path.toString())
 
-        if(path != null && myAccount != null){
+        if (path != null && myAccount != null) {
             requestManager = RequestManager(this, myAccount)
             val imageView: ImageView = findViewById(R.id.imageView2)
             val textViewName: TextView = findViewById(R.id.textView_photoName)
@@ -60,11 +60,11 @@ class ProcessActivity : AppCompatActivity() {
 
             Glide.with(this)
                 .load(path)
-                .diskCacheStrategy(DiskCacheStrategy.NONE )
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .skipMemoryCache(true)
                 .into(imageView)
 
-        }else{
+        } else {
             Toast.makeText(this, "Need a path to file or google signIn", Toast.LENGTH_LONG).show()
             finish()
         }
@@ -81,10 +81,10 @@ class ProcessActivity : AppCompatActivity() {
         )
     }
 
-    private fun getMode(): ProcessMode{
+    private fun getMode(): ProcessMode {
         val default = ProcessMode.GRID_BG
 
-        return when(modeRadioGroup.checkedRadioButtonId){
+        return when (modeRadioGroup.checkedRadioButtonId) {
             R.id.radioButton_auto -> default
             R.id.radioButton_clear -> ProcessMode.CLEAN_BG
             R.id.radioButton_grid -> ProcessMode.GRID_BG
@@ -93,15 +93,15 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    fun clickShare(view: View){
-        when(shareRadioGroup.checkedRadioButtonId){
+    fun clickShare(view: View) {
+        when (shareRadioGroup.checkedRadioButtonId) {
             R.id.radioButton_FGML -> shareMl()
             R.id.radioButton_FG6 -> shareSix()
             R.id.radioButton_CFG6 -> shareContentSix()
         }
     }
 
-    private fun getUriForTempFile(file: File, graphFormat: GraphFormat): Uri{
+    private fun getUriForTempFile(file: File, graphFormat: GraphFormat): Uri {
         val graphFile = createGraphFile(graphFormat)
         val uri = FileProvider.getUriForFile(
             this,
@@ -109,14 +109,13 @@ class ProcessActivity : AppCompatActivity() {
             graphFile
         )
 
-        file.copyTo(graphFile, overwrite=true)
+        file.copyTo(graphFile, overwrite = true)
         file.delete()
         return uri
     }
 
-    fun process(view: View){
+    fun process(view: View) {
         val mode = getMode()
-
 
         val fileToProcess: File? = File(photoPath!!)
 
@@ -125,12 +124,13 @@ class ProcessActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
                 showInfo("Upload image")
+                Log.i("process", "process image: $fileToProcess")
                 val guid = requestManager.uploadImage(
                     fileToProcess.parentFile!!.path,
                     fileToProcess.name
                 )
 
-                if (guid != null){
+                if (guid != null) {
                     showInfo("Process image GraphML")
                     val graphTempFileGraphML =
                         requestManager.processImage(guid, mode, GraphFormat.GraphML)
@@ -154,21 +154,22 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    private fun shareMl(){
+    private fun shareMl() {
         uriGraphMl?.let { shareFile(it) }
     }
 
-    private fun shareSix(){
+    private fun shareSix() {
         uriGraphSix?.let { shareFile(it) }
     }
 
-    private fun shareContentSix(){
+    private fun shareContentSix() {
         uriGraphSix?.let { shareText(it) }
     }
 
-    private fun shareText(uri: Uri){
-        Intent(Intent.ACTION_SEND).let {shareText ->
-            val content = contentResolver.openInputStream(uri)?.readBytes()?.toString(Charsets.UTF_8)
+    private fun shareText(uri: Uri) {
+        Intent(Intent.ACTION_SEND).let { shareText ->
+            val content =
+                contentResolver.openInputStream(uri)?.readBytes()?.toString(Charsets.UTF_8)
             Log.d("shareText", content.toString())
             shareText.type = "text/plain"
             shareText.putExtra(Intent.EXTRA_TEXT, content);
@@ -176,7 +177,7 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
-    private fun shareFile(uri: Uri){
+    private fun shareFile(uri: Uri) {
         val shareIntent = Intent(Intent.ACTION_SEND)
         val graphFile = File(uri.toString())
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -184,7 +185,7 @@ class ProcessActivity : AppCompatActivity() {
         shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
         shareIntent.type = "text/xml"
         shareIntent.flags = flags
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT,graphFile.name);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, graphFile.name);
         shareIntent.putExtra(Intent.EXTRA_TEXT, "Shared via OGR");
 
         val chooser = Intent.createChooser(shareIntent, null)
@@ -198,10 +199,10 @@ class ProcessActivity : AppCompatActivity() {
         startActivity(chooser)
     }
 
-    fun openGraph(view: View){
+    fun openGraph(view: View) {
         val uriFile = uriGraphMl
         uriFile?.let {
-            Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity->
+            Intent(this, FruchtermanReingoldActivity::class.java).also { graphActivity ->
                 graphActivity.data = uriFile
                 startActivity(graphActivity)
             }
@@ -209,14 +210,14 @@ class ProcessActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun showInfo(message: String){
+    private fun showInfo(message: String) {
         val pref = "Info: "
         val textViewInfo = findViewById<TextView>(R.id.textView_info)
         textViewInfo.text = pref + message
         textViewInfo.visibility = VISIBLE
     }
 
-    private fun hideInfo(){
+    private fun hideInfo() {
         val pref = "Info: "
         val textViewInfo = findViewById<TextView>(R.id.textView_info)
         textViewInfo.text = pref

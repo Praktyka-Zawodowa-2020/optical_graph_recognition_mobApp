@@ -265,7 +265,6 @@ class TakePictureFragment : Fragment() {
                             source.close()
                             destination.close()
 
-
                             setImage(photoUri!!)
                         }
                     }

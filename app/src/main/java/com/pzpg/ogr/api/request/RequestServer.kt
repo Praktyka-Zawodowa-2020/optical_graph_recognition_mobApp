@@ -191,7 +191,7 @@ class RequestServer(private val serverUrl: String){
             .fileDestination{
                     _, _ -> tempFile
             }
-
+            .timeoutRead(1000000)
             .body(body.toString())
             .header(Headers.CONTENT_TYPE to "application/json")
             .header(mapOf("authorization" to "Bearer $jwtToken"))
