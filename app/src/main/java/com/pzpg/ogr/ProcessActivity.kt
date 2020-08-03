@@ -11,9 +11,12 @@ import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.*
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import com.airbnb.paris.extensions.style
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -23,10 +26,12 @@ import com.pzpg.ogr.api.request.GraphFormat
 import com.pzpg.ogr.api.request.ProcessMode
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import kotlinx.android.synthetic.main.activity_process.*
+import kotlinx.android.synthetic.main.fragment_activity_sign_in.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+
 
 class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
@@ -34,6 +39,7 @@ class ProcessActivity : AppCompatActivity() {
     private lateinit var requestManager: RequestManager
     private var uriGraphSix: Uri? = null
     private var uriGraphMl: Uri? = null
+    private var guid: String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,6 +120,7 @@ class ProcessActivity : AppCompatActivity() {
         return uri
     }
 
+
     fun process(view: View) {
         val mode = getMode()
 
@@ -121,32 +128,58 @@ class ProcessActivity : AppCompatActivity() {
 
         showInfo("Start process")
 
+
+        textView_downloadGml.style(R.style.LoadingInfo)
+        textView_downloadG6.style(R.style.LoadingInfo)
+
         CoroutineScope(Dispatchers.Main).launch {
             fileToProcess?.also {
                 showInfo("Upload image")
                 Log.i("process", "process image: $fileToProcess")
-                val guid = requestManager.uploadImage(
-                    fileToProcess.parentFile!!.path,
-                    fileToProcess.name
-                )
+
+                if (guid == null){
+                    textView_uploadImage.style(R.style.LoadingInfo)
+                    guid = requestManager.uploadImage(
+                        fileToProcess.parentFile!!.path,
+                        fileToProcess.name
+                    )
+                }
+
 
                 if (guid != null) {
-                    showInfo("Process image GraphML")
-                    val graphTempFileGraphML =
-                        requestManager.processImage(guid, mode, GraphFormat.GraphML)
+                    textView_uploadImage.style(R.style.DoneInfo)
+                    showInfo("download GraphML")
 
-                    graphTempFileGraphML?.let { tempFile ->
-                        showInfo("Get graph file GraphML")
-                        uriGraphMl = getUriForTempFile(tempFile, GraphFormat.GraphML)
-                    }
-                    showInfo("Process image Graph6")
-                    val graphTempFileGSix =
-                        requestManager.processImage(guid, mode, GraphFormat.Graph6)
+                    if (requestManager.processImage(guid!!, mode)){
 
-                    graphTempFileGSix?.let { tempFile ->
-                        showInfo("Get graph file Graph6")
-                        uriGraphSix = getUriForTempFile(tempFile, GraphFormat.Graph6)
+                        val graphTempFileGraphML =
+                            requestManager.downloadProcessedGraph(guid!!, GraphFormat.GraphML)
+
+                        if(graphTempFileGraphML != null){
+                            showInfo("Get graph file GraphML")
+                            uriGraphMl = getUriForTempFile(graphTempFileGraphML, GraphFormat.GraphML)
+                            textView_downloadGml.style(R.style.DoneInfo)
+                        }else{
+                            textView_downloadGml.style(R.style.ErrorInfo)
+                        }
+
+
+
+                        showInfo("download Graph6")
+                        val graphTempFileGSix =
+                            requestManager.downloadProcessedGraph(guid!!, GraphFormat.Graph6)
+
+                        if (graphTempFileGSix != null){
+                            showInfo("Get graph file Graph6")
+                            uriGraphSix = getUriForTempFile(graphTempFileGSix, GraphFormat.Graph6)
+                            textView_downloadG6.style(R.style.DoneInfo)
+                        }else{
+                            textView_downloadG6.style(R.style.ErrorInfo)
+                        }
                     }
+
+                }else{
+                    textView_uploadImage.style(R.style.ErrorInfo)
                 }
 
                 hideInfo()
@@ -223,5 +256,6 @@ class ProcessActivity : AppCompatActivity() {
         textViewInfo.text = pref
         textViewInfo.visibility = GONE
     }
+
 
 }

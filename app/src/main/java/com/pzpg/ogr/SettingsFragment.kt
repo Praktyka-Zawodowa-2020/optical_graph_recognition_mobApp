@@ -1,9 +1,11 @@
 package com.pzpg.ogr
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,13 +17,14 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.pzpg.ogr.api.RequestManager
 import com.pzpg.ogr.SignInFragmentActivity.Companion.EXTRA_ACTION
 import com.pzpg.ogr.SignInFragmentActivity.Companion.EXTRA_SIGN_IN
 import com.pzpg.ogr.SignInFragmentActivity.Companion.EXTRA_SIGN_OUT
+import com.pzpg.ogr.api.RequestManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 class SettingsFragment : Fragment(), View.OnClickListener {
@@ -29,6 +32,8 @@ class SettingsFragment : Fragment(), View.OnClickListener {
     private val TAG = "SettingsFragment"
     private var account: GoogleSignInAccount? = null
     private lateinit var requestManager: RequestManager
+    private var picDir: File? = null
+    private var graphDir: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,12 +50,86 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
         val signOutButton = view.findViewById<Button>(R.id.button_signInOut)
+        val cleanPic = view.findViewById<Button>(R.id.button_cleanPicture)
+        val cleanDoc = view.findViewById<Button>(R.id.button_cleanDocs)
         signOutButton.setOnClickListener(this)
+        cleanPic.setOnClickListener(this)
+        cleanDoc.setOnClickListener(this)
 
-
+        picDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        graphDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+        calculateLocalData(view)
 
         updateUI(view)
         return view
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun calculateLocalData(view: View){
+        val prefS = "Size: "
+        Log.i("calculateLocalData", "start")
+        view.let { it ->
+            val graphInfoSize = it.findViewById<TextView>(R.id.textView_DocSize)
+            val picInfoSize = it.findViewById<TextView>(R.id.textView_PicSize)
+            val picCount = it.findViewById<TextView>(R.id.textView_PicCount)
+            val graphCount = it.findViewById<TextView>(R.id.textView_DocCount)
+
+            CoroutineScope(Dispatchers.Main).launch {
+                graphDir?.let { dir ->
+                    val (size, count) = folderInfo(dir)
+                    Log.i("Graph dir info", "Size=$size, Count=$count ")
+                    graphInfoSize?.let {sizeInfo ->
+                        sizeInfo.text = "Size: $size B"
+                    }
+
+                    graphCount?.let {countInfo ->
+                        countInfo.text = "Graphs: $count"
+                    }
+                }
+
+                picDir?.let { dir ->
+                    val (size, count) = folderInfo(dir)
+                    Log.i("Pic dir info", "Size=$size, Count=$count ")
+                    picInfoSize?.let {sizeInfo ->
+                        sizeInfo.text = "Size: $size B"
+                    }
+
+                    picCount?.let {countInfo ->
+                        countInfo.text = "Pictures: $count"
+                    }
+                }
+            }
+        }
+    }
+
+    private fun folderInfo(directory: File): Pair<Long, Int> {
+        var length: Long = 0
+        var count: Int = 0
+
+        directory.listFiles()?.forEach {file->
+            if (file.isFile) {
+                length += file.length()
+                count += 1
+            }
+            else {
+                val (size, retCount) = folderInfo(file)
+                length+=size
+                count+=retCount
+            }
+        }
+
+        return Pair(length, count)
+    }
+
+    private fun cleanDir(dir: File){
+        dir.let{
+            it.listFiles()?.forEach {file->
+                if(file.isFile) file.delete()
+                else if(file.isDirectory) cleanDir(file)
+            }
+        }
+        calculateLocalData(requireView())
+
     }
 
     private fun updateUI(view: View){
@@ -96,6 +175,26 @@ class SettingsFragment : Fragment(), View.OnClickListener {
                         startActivityForResult(signInActivity,
                             REQUEST_SIGN_IN_SETTING
                         )
+                    }
+                }
+            }
+            R.id.button_cleanDocs -> {
+                graphDir?.let{
+                    CoroutineScope(Dispatchers.Main).launch{
+                        val cleanDoc = view.findViewById<Button>(R.id.button_cleanDocs)
+                        cleanDoc.isEnabled = false
+                        cleanDir(it)
+                        cleanDoc.isEnabled = true
+                    }
+                }
+            }
+            R.id.button_cleanPicture -> {
+                picDir?.let{
+                    CoroutineScope(Dispatchers.Main).launch{
+                        val cleanPic = view.findViewById<Button>(R.id.button_cleanPicture)
+                        cleanPic.isEnabled = false
+                        cleanDir(it)
+                        cleanPic.isEnabled = true
                     }
                 }
             }

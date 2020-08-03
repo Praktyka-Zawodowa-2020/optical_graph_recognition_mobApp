@@ -108,12 +108,49 @@
 
             <View
                 android:id="@+id/divider2"
-                android:layout_width="358dp"
+                android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="13dp"
                 android:background="?android:attr/listDivider" />
 
 
+            <TextView
+                android:id="@+id/textView_processInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Process info:" />
+
+            <TextView
+                android:id="@+id/textView_uploadImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="upload image"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/textView_downloadGml"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="download graphml"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/textView_downloadG6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="download graph6"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <View
+                android:id="@+id/divider5"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="?android:attr/listDivider" />
 
             <TextView
                 android:id="@+id/textView7"

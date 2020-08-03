@@ -135,36 +135,35 @@ class RequestManager(private val context: Context, private val account: GoogleSi
     suspend fun processImage(
          path: String,
          name: String,
-         mode: ProcessMode = ProcessMode.GRID_BG,
-         format: GraphFormat = GraphFormat.GraphML
-    ): File? = withContext(Dispatchers.Main){
+         mode: ProcessMode = ProcessMode.GRID_BG
+    ): Boolean = withContext(Dispatchers.Main){
 
         if(!checkTokens())
-            return@withContext null
+            return@withContext false
 
         val jwtToken = tokenManager.getJwtToken()
         Log.i("processImage", "start")
 
         try {
-            val guid = uploadImage(path, name) ?: return@withContext null
+            val guid = uploadImage(path, name) ?: return@withContext false
             RequestServer(urlServer)
-                .processImage(guid, jwtToken!!, mode, format)
+                .processImage(guid, jwtToken!!, mode)
+            true
 
         }catch (e: UnauthorizedException){
             val refreshed = refresh()
-            if (refreshed) processImage(path, name, mode, format)
-            else null
+            if (refreshed) processImage(path, name, mode)
+            else false
         }catch (e: RequestServerException){
             Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
-            null
+            false
         }
     }
 
     suspend fun processImage(
          guid: String,
-         mode: ProcessMode = ProcessMode.GRID_BG,
-         format: GraphFormat = GraphFormat.GraphML
-    ): File? = withContext(Dispatchers.Main){
+         mode: ProcessMode = ProcessMode.GRID_BG
+    ): Boolean = withContext(Dispatchers.Main){
 
         val jwtToken = tokenManager.getJwtToken()
 
@@ -172,17 +171,36 @@ class RequestManager(private val context: Context, private val account: GoogleSi
 
         try {
             RequestServer(urlServer)
-                .processImage(guid, jwtToken!!, mode, format)
-
+                .processImage(guid, jwtToken!!, mode)
+            true
         }catch (e: UnauthorizedException){
             val refreshed = refresh()
-            if (refreshed) processImage(guid, mode, format)
+            if (refreshed) processImage(guid, mode)
+            else false
+        }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            false
+        }
+    }
+
+    suspend fun downloadProcessedGraph(
+        guid: String,
+        format: GraphFormat = GraphFormat.GraphML
+    ): File? = withContext(Dispatchers.IO){
+        val jwtToken = tokenManager.getJwtToken()
+
+        try {
+            RequestServer(urlServer).downloadGraph(guid, format, jwtToken!!)
+        }catch (e: UnauthorizedException){
+            val refreshed = refresh()
+            if (refreshed) downloadProcessedGraph(guid, format)
             else null
         }catch (e: RequestServerException){
             Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
             null
         }
     }
+
 
     suspend fun getHistory(): JSONArray?{
         val jwtToken = tokenManager.getJwtToken()
