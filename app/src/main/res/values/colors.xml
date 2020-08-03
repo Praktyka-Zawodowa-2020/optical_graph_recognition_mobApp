@@ -9,5 +9,8 @@
     <color name="red_700">#B40A1B</color>
     <color name="white">#F2F8FD</color>
     <color name="colorAccent">#7AB1FF</color>
+    <color name="green">#00CF91</color>
+    <color name="error">#EE3D48</color>
+    <color name="loading">#FFC46B</color>
 
 </resources>

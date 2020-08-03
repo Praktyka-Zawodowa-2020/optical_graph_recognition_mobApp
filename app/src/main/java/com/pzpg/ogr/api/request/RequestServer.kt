@@ -171,26 +171,16 @@ class RequestServer(private val serverUrl: String){
      */
     suspend fun processImage(guid: String,
                              jwtToken: String,
-                             mode: ProcessMode?,
-                             format: GraphFormat?) : File? = withContext(Dispatchers.IO){
+                             mode: ProcessMode?) = withContext(Dispatchers.IO){
         val endpoint = "/api/graphs/process/"
         Log.i("processImage", serverUrl + endpoint)
-        Log.i("processImage", format.toString())
 
-        val parameters = ArrayList<Pair<String, String>>()
-       // parameters.add("mode" to (mode?.name ?: ProcessMode.GRID_BG.name))
-        parameters.add("format" to (format?.name ?: GraphFormat.GraphML.name))
 
         val body = JSONObject()
         body.accumulate("mode", mode?.name ?: ProcessMode.GRID_BG.name)
 
-        val tempFile = File.createTempFile("temp", ".tmp")
 
-        val (request, response, result) =  Fuel.download(serverUrl + endpoint + guid,
-            parameters = parameters, method=Method.POST)
-            .fileDestination{
-                    _, _ -> tempFile
-            }
+        val (request, response, result) =  Fuel.post(serverUrl + endpoint + guid)
             .timeoutRead(1000000)
             .body(body.toString())
             .header(Headers.CONTENT_TYPE to "application/json")
@@ -203,6 +193,8 @@ class RequestServer(private val serverUrl: String){
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
 
+                Log.e("processImage", response.toString())
+
                 when(response.statusCode){
                     400 -> throw BadRequestException("Not valid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -212,7 +204,6 @@ class RequestServer(private val serverUrl: String){
             }
             is com.github.kittinunf.result.Result.Success -> {
                 Log.i("uploadImage", response.statusCode.toString())
-                return@withContext tempFile
             }
         }
 

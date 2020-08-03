@@ -88,4 +88,7 @@ dependencies {
 
     //Material design
     implementation 'com.google.android.material:material:1.1.0'
+
+    //For dynamically change a style
+    implementation 'com.airbnb.android:paris:1.7.1'
 }
