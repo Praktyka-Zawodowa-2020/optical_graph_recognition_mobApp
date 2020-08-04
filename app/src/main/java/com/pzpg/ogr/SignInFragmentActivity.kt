@@ -46,7 +46,7 @@ class SignInFragmentActivity : FragmentActivity(){
 
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestScopes(Scope(Scopes.DRIVE_FULL))
+            //.requestScopes(Scope(Scopes.APP_STATE))
             .requestServerAuthCode(getString(R.string.WEB_ID))
             .requestIdToken(getString(R.string.WEB_ID))
             .requestEmail()
