@@ -13,10 +13,10 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * Class for request to server
+ * Class responsible for request to server
  *
  * @property[serverUrl] the url of the server
- * @author github.com/Graidaris
+ * @author Władysław Jakołcewicz
  */
 class RequestServer(private val serverUrl: String) {
 
@@ -30,7 +30,7 @@ class RequestServer(private val serverUrl: String) {
      * @throws TimeOutException
      * @throws RequestServerException
      *
-     * @author github.com/Graidaris
+     * @author Władysław Jakołcewicz
      */
     suspend fun authorize(account: GoogleSignInAccount): JSONObject = withContext(Dispatchers.IO) {
         val endpoint = "/users/authenticate"
@@ -60,7 +60,8 @@ class RequestServer(private val serverUrl: String) {
     }
 
     /**
-     * Suspend method to refresh token method to refresh the access token "jwtToken" when the time of the token has expired
+     * Suspend method to refresh token method to refresh the access token "jwtToken" when the time
+     * of the token has expired.
      *
      * @param[rToken] refresh token which has string type
      * @return JSONObject which has three keys "mail", "jwtToken" and "refreshToken"
@@ -69,7 +70,7 @@ class RequestServer(private val serverUrl: String) {
      * @throws TimeOutException
      * @throws RequestServerException
      *
-     * @author github.com/Graidaris
+     * @author Władysław Jakołcewicz
      */
     suspend fun refreshToken(rToken: String): JSONObject = withContext(Dispatchers.IO) {
         val endpoint = "/users/refresh-token"
@@ -97,6 +98,9 @@ class RequestServer(private val serverUrl: String) {
         }
     }
 
+
+
+
     /**
      * Suspend method to upload an image which will processed to the server
      *
@@ -104,11 +108,13 @@ class RequestServer(private val serverUrl: String) {
      * @param[name] a name of the image has String type
      * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
      * @return guid of the uploaded image, has String type
+     *
      * @throws BadRequestException
      * @throws UnauthorizedException
-     * @throws NotAllowedMethodException
+     * @throws TimeOutException
+     * @throws RequestServerException
      *
-     * @author github.com/Graidaris
+     * @author Władysław Jakołcewicz
      */
     suspend fun uploadImage(
         dir: String,
@@ -150,9 +156,10 @@ class RequestServer(private val serverUrl: String) {
      * @return temporary file (graph)
      * @throws BadRequestException
      * @throws UnauthorizedException
-     * @throws NotAllowedMethodException
+     * @throws TimeOutException
+     * @throws RequestServerException
      *
-     * @author github.com/Graidaris
+     * @author Władysław Jakołcewicz
      */
     suspend fun processImage(
         guid: String,
@@ -193,13 +200,13 @@ class RequestServer(private val serverUrl: String) {
      * @param[guid] a guid of the uploaded image which we want to process
      * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
      * @param[format] recognized graph format which we want to take after processing
-     * @return temporary file (graph)
+     * @return [File] temporary file (graph)
      * @throws BadRequestException
      * @throws UnauthorizedException
      * @throws TimeOutException
      * @throws RequestServerException
      *
-     * @author github.com/Graidaris
+     * @author Władysław Jakołcewicz
      */
     suspend fun downloadGraph(
         guid: String,
@@ -237,6 +244,19 @@ class RequestServer(private val serverUrl: String) {
 
     }
 
+
+    /**
+     * Suspend method to get history from the server about the user activity
+     *
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     * @return[JSONArray] array of entities where contains name, guid, ownersEmail, createdAt, isPublic
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws TimeOutException
+     * @throws RequestServerException
+     *
+     * @author Władysław Jakołcewicz
+     */
     suspend fun getHistory(jwtToken: String): JSONArray = withContext(Dispatchers.IO) {
         val endpoint = "/api/graphs/history"
 
@@ -259,6 +279,19 @@ class RequestServer(private val serverUrl: String) {
         }
     }
 
+
+    /**
+     * Suspend method to delete all entities with processed graphs includes image, graphMl, g6 files
+     *
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     * @return[JSONArray] array of entities where contains name, guid, ownersEmail, createdAt, isPublic
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws TimeOutException
+     * @throws RequestServerException
+     *
+     * @author Władysław Jakołcewicz
+     */
     suspend fun deleteAll(jwtToken: String) = withContext(Dispatchers.IO) {
         val endpoint = "/api/graphs/delete-all"
 
@@ -280,6 +313,22 @@ class RequestServer(private val serverUrl: String) {
         }
     }
 
+
+    /**
+     * Suspend method to delete one of entities with processed graphs includes image, graphMl, g6 files
+     *
+     * @param[guid] a guid of the uploaded image which we want to process
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     *
+     * @return[JSONArray] array of entities where contains name, guid, ownersEmail, createdAt, isPublic
+     *
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws TimeOutException
+     * @throws RequestServerException
+     *
+     * @author Władysław Jakołcewicz
+     */
     suspend fun deleteData(guid: String, jwtToken: String) = withContext(Dispatchers.IO) {
         val endpoint = "/api/graphs/delete/"
 
@@ -301,6 +350,20 @@ class RequestServer(private val serverUrl: String) {
         }
     }
 
+
+    /**
+     * Suspend method to revoke token when user logged out
+     *
+     * @param[jwtToken] access token gotten from [refreshToken] method or [authorize]
+     * @param[rToken] refresh token gotten when user authorize or refresh jwtToken
+     *
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws TimeOutException
+     * @throws RequestServerException
+     *
+     * @author Władysław Jakołcewicz
+     */
     suspend fun revokeToken(jwtToken: String, rToken: String) = withContext(Dispatchers.IO) {
         val endpoint = "/users/revoke-token"
         Log.i("request to", serverUrl + endpoint)
@@ -326,6 +389,23 @@ class RequestServer(private val serverUrl: String) {
         }
     }
 
+
+    /**
+     * Method to management of exceptions thrown when errors are present in requests from the serverю
+     *
+     * @param[tag] tag to be shown in logs
+     * @param[result] Error result from the response
+     * @param[statusCode] response status code 
+     *
+     * @throws BadRequestException
+     * @throws UnauthorizedException
+     * @throws TimeOutException
+     * @throws RequestServerException
+     *
+     * @return[RequestServerException]
+     *
+     * @author Władysław Jakołcewicz
+     */
     private fun errorManage(
         tag: String,
         result: com.github.kittinunf.result.Result.Failure<FuelError>,
