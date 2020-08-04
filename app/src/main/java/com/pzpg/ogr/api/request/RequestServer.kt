@@ -57,7 +57,7 @@ class RequestServer(private val serverUrl: String){
             is com.github.kittinunf.result.Result.Success -> {
                 val data = result.get()
                 val resultToJson = JSONObject(data)
-                Log.i("uploadImage", response.statusCode.toString())
+                Log.i("authorize", response.statusCode.toString())
                 return@withContext resultToJson
             }
         }
@@ -203,7 +203,7 @@ class RequestServer(private val serverUrl: String){
                 }
             }
             is com.github.kittinunf.result.Result.Success -> {
-                Log.i("uploadImage", response.statusCode.toString())
+                Log.i("processImage", response.statusCode.toString())
             }
         }
 
@@ -255,7 +255,7 @@ class RequestServer(private val serverUrl: String){
                 }
             }
             is com.github.kittinunf.result.Result.Success -> {
-                Log.i("uploadImage", response.statusCode.toString())
+                Log.i("downloadGraph", response.statusCode.toString())
                 return@withContext tempFile
             }
         }
@@ -285,17 +285,19 @@ class RequestServer(private val serverUrl: String){
             is com.github.kittinunf.result.Result.Success -> {
                 val data = result.get()
                 val resultToJson = JSONArray(data)
-                Log.i("uploadImage", response.statusCode.toString())
+                Log.i("getHistory", response.statusCode.toString())
                 return@withContext resultToJson
             }
         }
     }
 
-    suspend fun deleteAll(jwtToken: String) = withContext(Dispatchers.Main){
+    suspend fun deleteAll(jwtToken: String) = withContext(Dispatchers.IO){
         val endpoint = "/api/graphs/delete-all"
 
+        Log.i("request to",serverUrl + endpoint )
         val (request, response, result) = Fuel.delete(serverUrl + endpoint)
-            .header(mapOf("authorization" to "Bearer $jwtToken"))
+            .header(mapOf("Authorization" to "Bearer $jwtToken"))
+            .header(mapOf("accept" to "*/*"))
             .responseString()
 
         Log.i("deleteAll", response.statusCode.toString())
@@ -315,7 +317,33 @@ class RequestServer(private val serverUrl: String){
                 Log.i("deleteAll", "Success")
             }
         }
+    }
 
+    suspend fun deleteData(guid: String, jwtToken: String) = withContext(Dispatchers.IO){
+        val endpoint = "/api/graphs/delete/"
+
+        Log.i("request to",serverUrl + endpoint )
+        val (request, response, result) = Fuel.delete(serverUrl + endpoint + guid)
+            .header(mapOf("Authorization" to "Bearer $jwtToken"))
+            .header(mapOf("accept" to "*/*"))
+            .responseString()
+
+        Log.i("deleteData", response.statusCode.toString())
+
+        when (result) {
+            is com.github.kittinunf.result.Result.Failure -> {
+                val ex = result.getException()
+                when(response.statusCode){
+                    400 -> throw BadRequestException("Invalid data in request")
+                    401 -> throw UnauthorizedException("User not authorized")
+                    -1 -> throw TimeOutException("Server is not available")
+                    else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
+                }
+            }
+            is com.github.kittinunf.result.Result.Success -> {
+                Log.i("deleteData", "delete $guid - Success")
+            }
+        }
     }
 
 }

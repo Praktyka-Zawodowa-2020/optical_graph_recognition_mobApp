@@ -2,12 +2,15 @@ package com.pzpg.ogr.graph
 
 import android.util.Log
 import android.util.Xml
+import de.blox.graphview.Edge
 import de.blox.graphview.Graph
 import de.blox.graphview.Node
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.io.InputStream
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class XmlParser{
@@ -28,6 +31,7 @@ class XmlParser{
 
         val graph = Graph()
         val arrNode = ArrayList<Node>()
+        val arrFillData = ArrayList<Pair<String, String>>()
 
         var curNode: Node? = null
         var dataKey: String? = null
@@ -47,6 +51,15 @@ class XmlParser{
                                 val x = parser.getAttributeValue(null, "x")
                                 val y = parser.getAttributeValue(null, "y")
                                 curNode.setPosition(x.toFloat(), y.toFloat())
+                            }
+                        }
+                        "y:Fill"->{
+                            if (curNode != null) {
+                                val isFill = parser.getAttributeValue(null, "transparent")
+                                Log.i("isFill", "${curNode.data} - $isFill")
+                                isFill?.let {
+                                    arrFillData.add(Pair(curNode!!.data.toString(), it))
+                                }
                             }
                         }
                         // tag supported http://koala.os.niwa.gda.pl/zgred/zgred.html
@@ -89,6 +102,18 @@ class XmlParser{
                                 }
                             }
 
+                            arrFillData.forEach {nodeIsFill ->
+                                graph.nodes.forEach { node->
+                                    val (id, isFill) = nodeIsFill
+                                    if (node.data == id) {
+                                        if (isFill.toLowerCase(Locale.ROOT) == "true") {
+                                            node.data = "E ${node.data}"
+                                        }else{
+                                            node.data = "F ${node.data}"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

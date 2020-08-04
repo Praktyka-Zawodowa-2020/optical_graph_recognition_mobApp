@@ -221,6 +221,7 @@ class RequestManager(private val context: Context, private val account: GoogleSi
         val jwtToken = tokenManager.getJwtToken()
         try {
             RequestServer(urlServer).deleteAll(jwtToken!!)
+            Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
             true
         }catch (e: UnauthorizedException){
             val refreshed = refresh()
@@ -244,4 +245,22 @@ class RequestManager(private val context: Context, private val account: GoogleSi
             refresh()
         }
     }
+
+    suspend fun deleteData(guid: String): Boolean = withContext(Dispatchers.Main){
+
+        val jwtToken = tokenManager.getJwtToken()
+        try {
+            RequestServer(urlServer).deleteData(guid,jwtToken!!)
+            Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
+            true
+        }catch (e: UnauthorizedException){
+            val refreshed = refresh()
+            if (refreshed) deleteData(guid)
+            else false
+        }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            false
+        }
+    }
+
 }
