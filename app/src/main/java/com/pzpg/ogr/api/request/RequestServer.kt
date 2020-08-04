@@ -16,6 +16,7 @@ import java.io.File
  * Class responsible for request to server
  *
  * @property[serverUrl] the url of the server
+ *
  * @author Władysław Jakołcewicz
  */
 class RequestServer(private val serverUrl: String) {
@@ -97,8 +98,6 @@ class RequestServer(private val serverUrl: String) {
             }
         }
     }
-
-
 
 
     /**
@@ -395,7 +394,7 @@ class RequestServer(private val serverUrl: String) {
      *
      * @param[tag] tag to be shown in logs
      * @param[result] Error result from the response
-     * @param[statusCode] response status code 
+     * @param[statusCode] response status code
      *
      * @throws BadRequestException
      * @throws UnauthorizedException

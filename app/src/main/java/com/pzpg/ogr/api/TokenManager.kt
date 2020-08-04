@@ -2,6 +2,13 @@ package com.pzpg.ogr.api
 
 import android.content.Context
 
+/**
+ * Class for managing the extraction of tokens from shared preferences
+ *
+ * @param[context]
+ *
+ * @author Władysław Jakołcewicz
+ */
 class TokenManager(context: Context) {
 
     private val sharedPref = context.getSharedPreferences("user_preferences", Context.MODE_PRIVATE)
