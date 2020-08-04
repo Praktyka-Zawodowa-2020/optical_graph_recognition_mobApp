@@ -29,6 +29,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".ProcessActivity"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity">
             <!-- The meta-data tag is required if you support API level 15 and lower -->
             <meta-data
@@ -40,7 +41,8 @@
             android:name="com.google.android.actions"
             android:resource="@xml/network_security_config" />
 
-        <activity android:name=".SignInFragmentActivity" />
+        <activity android:name=".SignInFragmentActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".graph.FruchtermanReingoldActivity"
             android:exported="true">
@@ -55,9 +57,11 @@
         </activity>
         <activity
             android:name=".graph.GraphActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             android:exported="true">
             <intent-filter>
