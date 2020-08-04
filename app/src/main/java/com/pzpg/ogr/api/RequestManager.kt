@@ -263,4 +263,21 @@ class RequestManager(private val context: Context, private val account: GoogleSi
         }
     }
 
+    suspend fun revokeToken(): Boolean = withContext(Dispatchers.Main){
+
+        val jwtToken = tokenManager.getJwtToken()
+        val refreshToken = tokenManager.getRefreshToken()
+        try {
+            RequestServer(urlServer).revokeToken(jwtToken!!,refreshToken!!)
+            true
+        }catch (e: UnauthorizedException){
+            val refreshed = refresh()
+            if (refreshed) revokeToken()
+            else false
+        }catch (e: RequestServerException){
+            Toast.makeText(context, e.message, Toast.LENGTH_LONG).show()
+            false
+        }
+    }
+
 }

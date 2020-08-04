@@ -46,14 +46,14 @@ class SignInFragmentActivity : FragmentActivity(){
 
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            //.requestScopes(Scope(Scopes.APP_STATE))
+            //.requestScopes(Scope(Scopes.DRIVE_FULL))
             .requestServerAuthCode(getString(R.string.WEB_ID))
             .requestIdToken(getString(R.string.WEB_ID))
             .requestEmail()
             .build()
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
-
+        myAccount = GoogleSignIn.getLastSignedInAccount(this)
 
         val action: String? = intent.getStringExtra(EXTRA_ACTION)
 
@@ -94,12 +94,22 @@ class SignInFragmentActivity : FragmentActivity(){
 
     private fun signOut(){
         Log.d(TAG, "signOut")
-        mGoogleSignInClient.signOut()
-            .addOnCompleteListener(this, object : OnCompleteListener<Void> {
-                override fun onComplete(task: Task<Void?>) {
-                    myAccount = null
-                }
-            })
+        val currentActivity = this
+       myAccount?.let {
+           requestManager = RequestManager(this, it)
+           requestManager.let {
+               CoroutineScope(Dispatchers.Main).launch{
+                   requestManager.revokeToken()
+
+                   mGoogleSignInClient.signOut()
+                       .addOnCompleteListener(currentActivity, object : OnCompleteListener<Void> {
+                           override fun onComplete(task: Task<Void?>) {
+                               myAccount = null
+                           }
+                       })
+               }
+           }
+       }
     }
 
     @SuppressLint("SetTextI18n")

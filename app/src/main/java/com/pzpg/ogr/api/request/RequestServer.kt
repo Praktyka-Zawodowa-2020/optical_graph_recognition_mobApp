@@ -47,7 +47,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
+                Log.e("authorize", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Not valid data in request : ${ex.message}")
                     -1 -> throw TimeOutException("Server is not available : ${ex.message}")
@@ -91,7 +91,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
+                Log.e("refreshToken", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Refresh token is invalid")
                     -1 -> throw TimeOutException("Server is not available")
@@ -138,7 +138,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
+                Log.e("uploadImage", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Not valid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -192,9 +192,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
-                Log.e("processImage", response.toString())
-
+                Log.e("processImage", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Graph not found")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -246,7 +244,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
+                Log.e("downloadGraph", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Invalid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -274,7 +272,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
+                Log.e("getHistory", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Invalid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -305,7 +303,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
-
+                Log.e("deleteAll", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Invalid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -333,6 +331,7 @@ class RequestServer(private val serverUrl: String){
         when (result) {
             is com.github.kittinunf.result.Result.Failure -> {
                 val ex = result.getException()
+                Log.e("deleteData", result.error.message.toString())
                 when(response.statusCode){
                     400 -> throw BadRequestException("Invalid data in request")
                     401 -> throw UnauthorizedException("User not authorized")
@@ -342,6 +341,38 @@ class RequestServer(private val serverUrl: String){
             }
             is com.github.kittinunf.result.Result.Success -> {
                 Log.i("deleteData", "delete $guid - Success")
+            }
+        }
+    }
+
+    suspend fun revokeToken(jwtToken: String, rToken: String) = withContext(Dispatchers.IO){
+        val endpoint = "/users/revoke-token"
+        Log.i("request to",serverUrl + endpoint )
+
+        val body = JSONObject()
+        body.accumulate("token", rToken)
+
+        val (request, response, result) = Fuel.post(serverUrl + endpoint)
+            .header(mapOf("Authorization" to "Bearer $jwtToken"))
+            .header(Headers.CONTENT_TYPE to "application/json")
+            .body(body.toString())
+            .responseString()
+
+        Log.i("revokeToken", response.statusCode.toString())
+
+        when (result) {
+            is com.github.kittinunf.result.Result.Failure -> {
+                val ex = result.getException()
+                Log.e("revokeToken", result.error.message.toString())
+                when(response.statusCode){
+                    400 -> throw BadRequestException("Invalid data in request")
+                    401 -> throw UnauthorizedException("User not authorized")
+                    -1 -> throw TimeOutException("Server is not available")
+                    else -> throw RequestServerException("Fuel ERROR: ${ex.message}")
+                }
+            }
+            is com.github.kittinunf.result.Result.Success -> {
+                Log.i("revokeToken", "Success")
             }
         }
     }
