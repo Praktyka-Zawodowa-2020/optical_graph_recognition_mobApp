@@ -24,4 +24,15 @@
                 android:title="Settings"/>
         </menu>
     </item>
+
+    <item android:title="Info">
+        <menu>
+            <item
+                android:id="@+id/nav_help"
+                android:title="Help"/>
+            <item
+                android:id="@+id/nav_about"
+                android:title="About"/>
+        </menu>
+    </item>
 </menu>
