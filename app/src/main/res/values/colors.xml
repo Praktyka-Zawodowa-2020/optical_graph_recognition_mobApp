@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="Primary">#51EAFF</color>
+    <color name="PrimaryDark">#1EC9E8</color>
+    <color name="PrimaryVariant">#7EB3FF</color>
+    <color name="black">#1A2026</color>
+    <color name="orange_500">#F6522E</color>
+    <color name="orange_300">#FF6E4E</color>
+    <color name="red_700">#B40A1B</color>
+    <color name="white">#F2F8FD</color>
+    <color name="colorAccent">#7AB1FF</color>
+    <color name="green">#00CF91</color>
+    <color name="error">#EE3D48</color>
+    <color name="loading">#FFC46B</color>
+
+</resources>

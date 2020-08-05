@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group>
+        <item
+            android:id="@+id/nav_home"
+            android:title="Main"/>
+        <item
+            android:id="@+id/nav_history"
+            android:title="History"/>
+        <item
+            android:id="@+id/nav_public"
+            android:title="Public"/>
+        <item
+            android:id="@+id/nav_library"
+            android:title="Library"/>
+    </group>
+
+
+    <item android:title="Settings">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:title="Settings"/>
+        </menu>
+    </item>
+
+    <item android:title="Info">
+        <menu>
+            <item
+                android:id="@+id/nav_help"
+                android:title="Help"/>
+            <item
+                android:id="@+id/nav_about"
+                android:title="About"/>
+        </menu>
+    </item>
+</menu>
