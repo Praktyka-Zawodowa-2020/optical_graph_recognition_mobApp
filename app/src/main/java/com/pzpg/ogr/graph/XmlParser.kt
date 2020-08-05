@@ -12,9 +12,19 @@ import java.io.InputStream
 import java.util.*
 import kotlin.collections.ArrayList
 
-
+/**
+ * Parser of the GraphMl format.
+ */
 class XmlParser{
 
+
+    /**
+     * Create parse and parse file
+     *
+     * @param[inputStream] input stream of the file
+     *
+     * @return[Graph]
+     */
     @Throws(XmlPullParserException::class, IOException::class)
     fun parse(inputStream: InputStream): Graph {
         inputStream.use {
@@ -26,6 +36,13 @@ class XmlParser{
         }
     }
 
+    /**
+     * Parse file body
+     *
+     * @param[parser]
+     *
+     * @return[Graph]
+     */
     @Throws(XmlPullParserException::class, IOException::class)
     private fun readGraph(parser: XmlPullParser): Graph{
 

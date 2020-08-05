@@ -5,8 +5,16 @@ import de.blox.graphview.GraphView
 import de.blox.graphview.Node
 import de.blox.graphview.edgerenderer.StraightEdgeRenderer
 
+/**
+ * Code taken from https://github.com/Team-Blox/GraphView/blob/master/sample/src/main/java/de/blox/graphview/sample/Algorithms/FruchtermanReingoldActivity.java
+ *
+ */
+
 class FruchtermanReingoldActivity: GraphActivity() {
 
+    /**
+     * Create a test graph to testing GraphView library
+     */
     override fun createGraph(): Graph{
         val graph = Graph()
         val a = Node("1")

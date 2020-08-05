@@ -29,7 +29,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
+/**
+ * Fragment activity responsible for the authorization
+ */
 class SignInFragmentActivity : FragmentActivity(){
 
     private val TAG = "SignInFragmentActivity"
@@ -43,10 +45,9 @@ class SignInFragmentActivity : FragmentActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_activity_sign_in)
 
-
-
+        //Google authorization
+        //more info here https://developers.google.com/identity/sign-in/android/start-integrating
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            //.requestScopes(Scope(Scopes.DRIVE_FULL))
             .requestServerAuthCode(getString(R.string.WEB_ID))
             .requestIdToken(getString(R.string.WEB_ID))
             .requestEmail()
@@ -81,7 +82,7 @@ class SignInFragmentActivity : FragmentActivity(){
 
     fun clickGetToken(view: View){
         myAccount?.let {
-            getToken()
+            serverAuthorize()
         }
     }
 
@@ -159,7 +160,7 @@ class SignInFragmentActivity : FragmentActivity(){
             myAccount?.let {
                 requestManager = RequestManager(this, it)
                 textView2.text = "Hello: ${it.displayName}"
-                getToken()
+                serverAuthorize()
             }
         } catch (e: ApiException) {
             sign_in_button.isEnabled = true
@@ -170,9 +171,9 @@ class SignInFragmentActivity : FragmentActivity(){
 
 
 
-    private fun getToken()
+    private fun serverAuthorize()
     {
-        Log.i("getToken", "getToken IN")
+        Log.i("serverAuthorize", "serverAuthorize IN")
         showInfo("connecting to server...")
         hideError()
         button_reconect.isEnabled = false

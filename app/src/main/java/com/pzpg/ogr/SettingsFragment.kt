@@ -26,7 +26,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-
+/**
+ * Fragment responsible for some preferences
+ */
 class SettingsFragment : Fragment(), View.OnClickListener {
 
     private val TAG = "SettingsFragment"
@@ -65,6 +67,7 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         updateUI(view)
         return view
     }
+
 
     @SuppressLint("SetTextI18n")
     private fun calculateLocalData(view: View) {
@@ -125,6 +128,12 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         }
     }
 
+    /**
+     *  Get folder size and count of files inside
+     *
+     *  @param[directory]
+     *  @return[Pair] (size, count)
+     */
     private fun folderInfo(directory: File): Pair<Long, Int> {
         var length: Long = 0
         var count: Int = 0
@@ -143,6 +152,11 @@ class SettingsFragment : Fragment(), View.OnClickListener {
         return Pair(length, count)
     }
 
+    /**
+     * Cleans the directory
+     *
+     * @param[dir]
+     */
     private fun cleanDir(dir: File) {
         dir.let {
             it.listFiles()?.forEach { file ->
@@ -151,7 +165,6 @@ class SettingsFragment : Fragment(), View.OnClickListener {
             }
         }
         calculateLocalData(requireView())
-
     }
 
     private fun updateUI(view: View) {

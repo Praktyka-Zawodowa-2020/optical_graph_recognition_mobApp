@@ -21,7 +21,7 @@ import java.io.File
 
 
 /**
- * A fragment representing a list of Items.
+ * Fragment representing a list of Items in the app Docs directory.
  */
 class LibraryFragment : Fragment(),
     MyItemGraphRecyclerViewAdapter.OnItemListener {

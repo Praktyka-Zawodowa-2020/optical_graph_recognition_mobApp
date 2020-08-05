@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.View
-import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageView
 import android.widget.TextView
@@ -26,13 +25,14 @@ import com.pzpg.ogr.api.request.GraphFormat
 import com.pzpg.ogr.api.request.ProcessMode
 import com.pzpg.ogr.graph.FruchtermanReingoldActivity
 import kotlinx.android.synthetic.main.activity_process.*
-import kotlinx.android.synthetic.main.fragment_activity_sign_in.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-
+/**
+ * Activity responsible for processing an image and sharing result of the processing.
+ */
 class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
     private var account: GoogleSignInAccount? = null
@@ -48,6 +48,8 @@ class ProcessActivity : AppCompatActivity() {
 
         supportActionBar?.title = "Process";
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
+
+        //get the path of the image to be processed
         val path = intent.getStringExtra("EXTRA_PHOTO_PATH")
         var fileToProcess: File? = null
 
@@ -64,6 +66,7 @@ class ProcessActivity : AppCompatActivity() {
 
             account = myAccount
 
+            //set photo to ImageView
             Glide.with(this)
                 .load(path)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
@@ -76,6 +79,13 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Create graph file
+     *
+     * @param[graphFormat] the format of the graph we want to get, see [com.pzpg.ogr.api.request.GraphFormat]
+     *
+     * @return[File]
+     */
     private fun createGraphFile(graphFormat: GraphFormat): File {
         // Create an image file name
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
@@ -87,6 +97,11 @@ class ProcessActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Get selected mod
+     *
+     * @return[ProcessMode] see [com.pzpg.ogr.api.request.ProcessMode]
+     */
     private fun getMode(): ProcessMode {
         val default = ProcessMode.GRID_BG
 
@@ -99,6 +114,10 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
+
+    /**
+     * Share click handling
+     */
     fun clickShare(view: View) {
         when (shareRadioGroup.checkedRadioButtonId) {
             R.id.radioButton_FGML -> shareMl()
@@ -107,6 +126,14 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Create Uri of the file through our provider
+     *
+     * @param[file]
+     * @param[graphFormat] the format of the file we want to get, see [com.pzpg.ogr.api.request.GraphFormat]
+     *
+     * @return[Uri]
+     */
     private fun getUriForTempFile(file: File, graphFormat: GraphFormat): Uri {
         val graphFile = createGraphFile(graphFormat)
         val uri = FileProvider.getUriForFile(
@@ -120,12 +147,14 @@ class ProcessActivity : AppCompatActivity() {
         return uri
     }
 
-
+    /**
+     * Process click handling and processing process, save information like guid, uriGraphMl, uriGraphSix for future use.
+     * Used [photoPath], Uri of the photo whose will be processed.
+     */
     fun process(view: View) {
         val mode = getMode()
 
         val fileToProcess: File? = File(photoPath!!)
-
 
         textView_process.style(R.style.LoadingInfo)
         textView_downloadGml.style(R.style.LoadingInfo)
@@ -137,7 +166,7 @@ class ProcessActivity : AppCompatActivity() {
             fileToProcess?.also {
                 Log.i("process", "process image: $fileToProcess")
 
-                if (guid == null){
+                if (guid == null) {
                     textView_uploadImage.style(R.style.LoadingInfo)
                     guid = requestManager.uploadImage(
                         fileToProcess.parentFile!!.path,
@@ -145,19 +174,19 @@ class ProcessActivity : AppCompatActivity() {
                     )
                 }
 
-
                 if (guid != null) {
                     textView_uploadImage.style(R.style.DoneInfo)
 
-                    if (requestManager.processImage(guid!!, mode)){
+                    if (requestManager.processImage(guid!!, mode)) {
                         textView_process.style(R.style.DoneInfo)
                         val graphTempFileGraphML =
                             requestManager.downloadProcessedGraph(guid!!, GraphFormat.GraphML)
 
-                        if(graphTempFileGraphML != null){
-                            uriGraphMl = getUriForTempFile(graphTempFileGraphML, GraphFormat.GraphML)
+                        if (graphTempFileGraphML != null) {
+                            uriGraphMl =
+                                getUriForTempFile(graphTempFileGraphML, GraphFormat.GraphML)
                             textView_downloadGml.style(R.style.DoneInfo)
-                        }else{
+                        } else {
                             textView_downloadGml.style(R.style.ErrorInfo)
                         }
 
@@ -165,17 +194,17 @@ class ProcessActivity : AppCompatActivity() {
                         val graphTempFileGSix =
                             requestManager.downloadProcessedGraph(guid!!, GraphFormat.Graph6)
 
-                        if (graphTempFileGSix != null){
+                        if (graphTempFileGSix != null) {
                             uriGraphSix = getUriForTempFile(graphTempFileGSix, GraphFormat.Graph6)
                             textView_downloadG6.style(R.style.DoneInfo)
-                        }else{
+                        } else {
                             textView_downloadG6.style(R.style.ErrorInfo)
                         }
-                    }else{
+                    } else {
                         textView_process.style(R.style.ErrorInfo)
                     }
 
-                }else{
+                } else {
                     textView_uploadImage.style(R.style.ErrorInfo)
                 }
             }
@@ -184,18 +213,32 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Share a graph in GraphMl format
+     */
     private fun shareMl() {
         uriGraphMl?.let { shareFile(it) }
     }
 
+    /**
+     * Share a graph in Graph6 format
+     */
     private fun shareSix() {
         uriGraphSix?.let { shareFile(it) }
     }
 
+    /**
+     * Share content of file g6
+     */
     private fun shareContentSix() {
         uriGraphSix?.let { shareText(it) }
     }
 
+    /**
+     * Share content of the file
+     *
+     * @param[uri] of the file whose content will be extracted and shared
+     */
     private fun shareText(uri: Uri) {
         Intent(Intent.ACTION_SEND).let { shareText ->
             val content =
@@ -207,6 +250,11 @@ class ProcessActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Share the file
+     *
+     * @param[uri] of the file to be shared
+     */
     private fun shareFile(uri: Uri) {
         val shareIntent = Intent(Intent.ACTION_SEND)
         val graphFile = File(uri.toString())
@@ -229,6 +277,9 @@ class ProcessActivity : AppCompatActivity() {
         startActivity(chooser)
     }
 
+    /**
+     * Open graph click handling. Used [uriGraphMl], the file to be opened.
+     */
     fun openGraph(view: View) {
         val uriFile = uriGraphMl
         uriFile?.let {
@@ -238,21 +289,4 @@ class ProcessActivity : AppCompatActivity() {
             }
         }
     }
-
-    @SuppressLint("SetTextI18n")
-    private fun showInfo(message: String) {
-        val pref = "Info: "
-        val textViewInfo = findViewById<TextView>(R.id.textView_info)
-        textViewInfo.text = pref + message
-        textViewInfo.visibility = VISIBLE
-    }
-
-    private fun hideInfo() {
-        val pref = "Info: "
-        val textViewInfo = findViewById<TextView>(R.id.textView_info)
-        textViewInfo.text = pref
-        textViewInfo.visibility = GONE
-    }
-
-
 }

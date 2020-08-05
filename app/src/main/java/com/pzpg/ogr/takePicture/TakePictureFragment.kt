@@ -7,7 +7,6 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,13 +24,16 @@ import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.pzpg.ogr.*
+import com.pzpg.ogr.ProcessActivity
+import com.pzpg.ogr.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
 
-
+/**
+ * Fragment responsible for photographing, select an image from the gallery, editing photos.
+ */
 class TakePictureFragment : Fragment() {
 
     private val TAG = "TakePictureFragment"
@@ -41,12 +43,9 @@ class TakePictureFragment : Fragment() {
     private var currentPhotoPath: String? = null
     private var photoUri: Uri? = null
 
-    private lateinit var inputPFD: ParcelFileDescriptor
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupPermissions()
-
     }
 
     override fun onCreateView(
@@ -58,9 +57,9 @@ class TakePictureFragment : Fragment() {
 
 
         viewModel = ViewModelProviders.of(this).get(TakePictureViewModel::class.java)
-        if(viewModel.uri != null){
+        if (viewModel.uri != null) {
             setImage(viewModel.uri!!)
-        }else{
+        } else {
             imageView.setImageResource(R.drawable.ic_empty_picture_graph_v2)
         }
 
@@ -86,15 +85,22 @@ class TakePictureFragment : Fragment() {
         return view
     }
 
+    /**
+     * Set photo to ImageView
+     *
+     * @param[uri] of the image we want to set to the ImageView
+     */
     private fun setImage(uri: Uri) {
         Glide.with(this)
             .load(uri)
-            .diskCacheStrategy(DiskCacheStrategy.NONE )
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
             .skipMemoryCache(true)
             .into(imageView)
     }
 
-
+    /**
+     * Intent [ProcessActivity], used [currentPhotoPath]
+     */
     private fun goProcess() {
         val account = GoogleSignIn.getLastSignedInAccount(requireActivity())
         if (account != null) {
@@ -112,7 +118,9 @@ class TakePictureFragment : Fragment() {
         }
     }
 
-
+    /**
+     * Configure the permissions to be used in the app
+     */
     private fun setupPermissions() {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
@@ -140,15 +148,27 @@ class TakePictureFragment : Fragment() {
         }
     }
 
+    /**
+     * Create image file and save [currentPhotoPath] of the file.
+     *
+     * @param[prefix] of the created file
+     * @param[extension] of the created file
+     *
+     * @return[File]
+     */
     @Throws(IOException::class)
     private fun createImageFile(prefix: String, extension: String): File {
-        val storageDir: File? = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(prefix,extension,storageDir).apply {
+        val storageDir: File? =
+            requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(prefix, extension, storageDir).apply {
             currentPhotoPath = absolutePath
             viewModel.path = currentPhotoPath
         }
     }
 
+    /**
+     * Intent ACTION_IMAGE_CAPTURE, created file [createImageFile] and [photoUri] for it.
+     */
     private fun takePhoto(view: View) {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             takePictureIntent.resolveActivity(requireActivity().packageManager)?.also {
@@ -174,10 +194,14 @@ class TakePictureFragment : Fragment() {
         }
     }
 
+    /**
+     * Edit the photo. Used [photoUri]
+     */
     private fun editPhoto(view: View) {
-        if(photoUri != null){
+        if (photoUri != null) {
             // Code taken from answer on http://stackoverflow.com/questions/15699299/android-edit-image-intent
-            val flags = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            val flags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
 
             val editIntent = Intent(Intent.ACTION_EDIT)
             editIntent.setDataAndType(photoUri, "image/*")
@@ -195,11 +219,14 @@ class TakePictureFragment : Fragment() {
                 requireActivity().grantUriPermission(packageName, photoUri, flags)
             }
             startActivityForResult(Intent.createChooser(editIntent, null), EDIT_INTENT)
-        }else{
+        } else {
             Toast.makeText(requireContext(), "Need a photo", Toast.LENGTH_SHORT).show()
         }
     }
 
+    /**
+     * Intent ACTION_PICK
+     */
     private fun openGallery(view: View) {
         Intent(
             Intent.ACTION_PICK,
@@ -234,12 +261,15 @@ class TakePictureFragment : Fragment() {
             }
             REQUEST_GALLERY_PHOTO -> {
                 if (resultCode == AppCompatActivity.RESULT_OK) {
+                    //take uri from the intent result
                     val imageURI: Uri? = data?.data as Uri
                     if (imageURI != null) {
 
+                        //Copy the selected file to the application directory created by our provider.
+
                         val destinationFile: File? = try {
                             createImageFile("gallery_", ".jpg")
-                        }catch (e: IOException){
+                        } catch (e: IOException) {
                             Log.e("Creating file", e.toString())
                             null
                         }
@@ -272,15 +302,15 @@ class TakePictureFragment : Fragment() {
             }
             EDIT_INTENT -> {
                 if (resultCode == AppCompatActivity.RESULT_OK) {
-                    if(photoUri != null)
+                    if (photoUri != null)
                         viewModel.uri = photoUri
-                        setImage(photoUri!!)
+                    setImage(photoUri!!)
                 }
             }
         }
     }
 
-    companion object{
+    companion object {
         const val REQUEST_CAMERA_PHOTO = 1
         const val REQUEST_GALLERY_PHOTO = 2
         const val EDIT_INTENT = 3

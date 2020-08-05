@@ -23,6 +23,10 @@ import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 
+/**
+ * Code taken from https://github.com/Team-Blox/GraphView/blob/master/sample/src/main/java/de/blox/graphview/sample/GraphActivity.java
+ * There is a small change to adapt to the project
+ */
 
 abstract class GraphActivity : AppCompatActivity() {
     private var nodeCount = 1
@@ -186,6 +190,9 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Save currently opens graph in graphml format
+     */
     fun saveGraphGraphml(graph: Graph, name: String){
 
         val xmlSerializer = Xml.newSerializer()
@@ -255,6 +262,12 @@ abstract class GraphActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Read graph in GraphMl format.
+     *
+     * @param[uri] of the file
+     * @return[Graph]
+     */
     private fun readGraphGraphMl(uri: Uri): Graph?{
 
         val inputStream = contentResolver.openInputStream(uri)
