@@ -4,35 +4,22 @@
     <group>
         <item
             android:id="@+id/nav_home"
+            android:icon="@drawable/ic_baseline_image_24"
             android:title="Main"/>
         <item
-            android:id="@+id/nav_history"
-            android:title="History"/>
-        <item
-            android:id="@+id/nav_public"
-            android:title="Public"/>
-        <item
             android:id="@+id/nav_library"
+            android:icon="@drawable/ic_baseline_library_books_24"
             android:title="Library"/>
+
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_baseline_settings_24"
+            android:title="Settings"/>
+
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_baseline_info_24"
+            android:title="About"/>
     </group>
 
-
-    <item android:title="Settings">
-        <menu>
-            <item
-                android:id="@+id/nav_settings"
-                android:title="Settings"/>
-        </menu>
-    </item>
-
-    <item android:title="Info">
-        <menu>
-            <item
-                android:id="@+id/nav_help"
-                android:title="Help"/>
-            <item
-                android:id="@+id/nav_about"
-                android:title="About"/>
-        </menu>
-    </item>
 </menu>
