@@ -19,4 +19,41 @@
     <string name="jwtToken">User_jwtToken</string>
     <string name="refreshToken">User_refreshToken</string>
 
+
+
+    <string name="about">
+        <![CDATA[
+        <h1 style="text-align: center;">Optical Graph Recognition</h1>
+
+        An application for recognizing graphs from a picture using the REST API of the server
+        <a href="https://github.com/Praktyka-Zawodowa-2020/optical_graph_recognition">Click</a>,
+        which in turn uses an algorithm about which you can read more here
+        <a href="https://github.com/Praktyka-Zawodowa-2020/optical_graph_recognition_server">Click</a>.
+        <br/>
+        <br/>
+        <br/>
+        <h2>Developed by:</h2>
+
+        <h3>Mobile application:</h3>
+        <ul><li>Władysław Jakołcewicz</li></ul>
+
+        <h3>Server:</h3>
+        <ul><li>Grzegorz Choiński</li></ul>
+
+        <h3>Algorithm:</h3>
+        <ul>
+                <li>Kacper Nowakowski</li>
+                <li>Filip Chodziutko</li>
+
+        </ul>
+
+        <h3>Idea:</h3>
+        <ul>
+                <li>Kacper Wereszko</li>
+
+        </ul>
+
+        ]]>
+    </string>
+
 </resources>
