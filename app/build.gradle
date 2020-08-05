@@ -97,6 +97,6 @@ dependencies {
 }
 
 dokka {
-    outputFormat = 'gfm'
+    outputFormat = 'html'
     outputDirectory = "$buildDir/docs"
 }
