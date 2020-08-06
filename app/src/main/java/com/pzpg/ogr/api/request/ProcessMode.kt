@@ -7,5 +7,6 @@ package com.pzpg.ogr.api.request
 enum class ProcessMode{
     GRID_BG, //grid background
     CLEAN_BG, //clean background
-    PRINTED //graph is printed
+    PRINTED, //graph is printed
+    AUTO
 }
