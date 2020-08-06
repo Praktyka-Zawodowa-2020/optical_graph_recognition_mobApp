@@ -146,7 +146,7 @@ class RequestManager(private val context: Context, private val account: GoogleSi
     suspend fun processImage(
          path: String,
          name: String,
-         mode: ProcessMode = ProcessMode.GRID_BG
+         mode: ProcessMode = ProcessMode.AUTO
     ): Boolean = withContext(Dispatchers.Main){
 
         if(!checkTokens())
@@ -183,7 +183,7 @@ class RequestManager(private val context: Context, private val account: GoogleSi
      */
     suspend fun processImage(
          guid: String,
-         mode: ProcessMode = ProcessMode.GRID_BG
+         mode: ProcessMode = ProcessMode.AUTO
     ): Boolean = withContext(Dispatchers.Main){
 
         val jwtToken = tokenManager.getJwtToken()

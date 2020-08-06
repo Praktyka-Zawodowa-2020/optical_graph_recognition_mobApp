@@ -103,10 +103,10 @@ class ProcessActivity : AppCompatActivity() {
      * @return[ProcessMode] see [com.pzpg.ogr.api.request.ProcessMode]
      */
     private fun getMode(): ProcessMode {
-        val default = ProcessMode.GRID_BG
+        val default = ProcessMode.AUTO
 
         return when (modeRadioGroup.checkedRadioButtonId) {
-            R.id.radioButton_auto -> default
+            R.id.radioButton_auto -> ProcessMode.AUTO
             R.id.radioButton_clear -> ProcessMode.CLEAN_BG
             R.id.radioButton_grid -> ProcessMode.GRID_BG
             R.id.radioButton_printed -> ProcessMode.PRINTED

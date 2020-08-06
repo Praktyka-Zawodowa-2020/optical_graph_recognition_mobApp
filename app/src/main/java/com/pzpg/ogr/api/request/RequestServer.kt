@@ -166,12 +166,15 @@ class RequestServer(private val serverUrl: String) {
         mode: ProcessMode?
     ) = withContext(Dispatchers.IO) {
         val endpoint = "/api/graphs/process/"
+
+        val processMode = mode?.name ?: ProcessMode.AUTO.name
+
         Log.i("processImage", serverUrl + endpoint)
+        Log.i("processImage Mode", processMode)
 
 
         val body = JSONObject()
-        body.accumulate("mode", mode?.name ?: ProcessMode.GRID_BG.name)
-
+        body.accumulate("mode", processMode)
 
         val (request, response, result) = Fuel.post(serverUrl + endpoint + guid)
             .timeoutRead(1000000)
@@ -216,6 +219,8 @@ class RequestServer(private val serverUrl: String) {
         val endpoint = "/api/graphs/get/"
         val parameters = ArrayList<Pair<String, String>>()
 
+        Log.i("downloadGraph", serverUrl + endpoint)
+
         parameters.add("format" to (format?.name ?: GraphFormat.GraphML.name))
 
         val tempFile = File.createTempFile("temp", ".tmp")
@@ -258,7 +263,7 @@ class RequestServer(private val serverUrl: String) {
      */
     suspend fun getHistory(jwtToken: String): JSONArray = withContext(Dispatchers.IO) {
         val endpoint = "/api/graphs/history"
-
+        Log.i("getHistory", serverUrl + endpoint)
         val (request, response, result) = Fuel.get(serverUrl + endpoint)
             .header(mapOf("authorization" to "Bearer $jwtToken"))
             .responseString()
