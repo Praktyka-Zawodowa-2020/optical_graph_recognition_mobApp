@@ -16,6 +16,10 @@ import kotlinx.coroutines.Dispatchers
  * Class for managing requests to the server.
  *
  * @property[context] a context where class has created
+ * @property[account] a user google account
+ * @property[tokenManager] see [TokenManager]
+ * @property[urlServer] url of the server
+ *
  * @author Władysław Jakołcewicz
  */
 
@@ -104,7 +108,7 @@ class RequestManager(private val context: Context, private val account: GoogleSi
      * @param[path] path to the image without name
      * @param[name] name of the image
      *
-     * @return[guid] universally unique identifier of uploaded image or none, when something went wrong
+     * @return[String] universally unique identifier (GUID) of uploaded image or none, when something went wrong
      * @author Władysław Jakołcewicz
      */
     suspend fun uploadImage(path: String, name: String): String? = withContext(Dispatchers.Main){

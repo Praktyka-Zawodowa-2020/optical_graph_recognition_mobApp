@@ -21,7 +21,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /***
- * Same algorithm that we can find here link below, with an added line in method [randomize]
+ * Same algorithm that we can find here link below, with an added line in method [Algorithm.randomize]
  * that helps to save the position of the node of the recognized graph GraphML.
  *
  * https://github.com/Team-Blox/GraphView/blob/master/graphview/src/main/java/de/blox/graphview/energy/FruchtermanReingoldAlgorithm.kt

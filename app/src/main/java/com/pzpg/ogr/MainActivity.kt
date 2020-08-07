@@ -20,7 +20,7 @@ import com.pzpg.ogr.api.TokenManager
 
 class MainActivity : AppCompatActivity() {
 
-    val TAG = "MainActivity"
+    private val TAG = "MainActivity"
     private lateinit var appBarConfiguration: AppBarConfiguration
     private var SIGN_IN = 1
 

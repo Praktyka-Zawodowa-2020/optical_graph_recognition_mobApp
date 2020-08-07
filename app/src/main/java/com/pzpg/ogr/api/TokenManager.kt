@@ -5,7 +5,9 @@ import android.content.Context
 /**
  * Class for managing the extraction of tokens from shared preferences.
  *
- * @param[context]
+ * @property[sharedPref] shared preferences for token content
+ *
+ * @param[context] a context where class has created
  *
  * @author Władysław Jakołcewicz
  */
@@ -28,7 +30,7 @@ class TokenManager(context: Context) {
     /**
      * Get Jwt token from shared preferences.
      *
-     * @return[jwtToken]
+     * @return[String] jwtToken
      */
     fun getJwtToken(): String? {
         return sharedPref.getString("jwtToken", null)
@@ -49,7 +51,7 @@ class TokenManager(context: Context) {
     /**
      * Get Refresh token from shared preferences.
      *
-     * @return[refreshToken]
+     * @return[String] refreshToken
      */
     fun getRefreshToken(): String? {
         return sharedPref.getString("refreshToken", null)

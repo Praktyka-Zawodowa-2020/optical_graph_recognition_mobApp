@@ -1,0 +1,10 @@
+$dokka.format:gfm
+$dokka.linkExtension:md
+
+com.pzpg.ogr
+com.pzpg.ogr.api
+com.pzpg.ogr.api.request
+com.pzpg.ogr.graph
+com.pzpg.ogr.library
+com.pzpg.ogr.library.listContent
+com.pzpg.ogr.takePicture
