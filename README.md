@@ -1,5 +1,5 @@
 # Optical Graph Recognition
-Mobile application for optical graph recognition
+Mobile application for optical graph recognition. **A Google account is required to use the app.**
 
 ## Features
 - Optical graph recognition from image, which can be taken from camera or file managers,
@@ -10,7 +10,7 @@ Mobile application for optical graph recognition
 
 ## Used API
 
-For optical recognition of graphs, the application uses the API from the [server](https://github.com/Praktyka-Zawodowa-2020/optical_graph_recognition_server).
+For optical recognition of graphs, the application uses the API from the [server](https://github.com/Praktyka-Zawodowa-2020/optical_graph_recognition_server). For authorization on the server, the data of the google user account is used, based on this, the Google Sign-In mechanism is integrated into the application.
 
 ## Used technologies
 * [GraphView](https://github.com/Team-Blox/GraphView) - is used to display data in graph structures.
@@ -19,3 +19,6 @@ For optical recognition of graphs, the application uses the API from the [server
 
 ## Documentation
 Documentation of the project you can finde here [Click](docs/index.md)
+
+
+#### Władysław Jakołcewicz 2020
