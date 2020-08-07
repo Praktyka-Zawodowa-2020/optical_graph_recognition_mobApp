@@ -19,3 +19,6 @@ For optical recognition of graphs, the application uses the API from the [server
 
 ## Documentation
 Documentation of the project you can finde here [Click](docs/index.md)
+
+
+#### Władysław Jakołcewicz 2020
