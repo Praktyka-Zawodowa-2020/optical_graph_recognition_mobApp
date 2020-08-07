@@ -5,7 +5,7 @@ package com.pzpg.ogr.api.request
  *
  * @property[suffix]
  *
- * @author github.com/Graidaris
+ * @author Władyław Jakołcewicz
  */
 enum class GraphFormat(val suffix: String){
     RawImage(".jpg"),

@@ -2,7 +2,7 @@ package com.pzpg.ogr.api.request
 
 /**
  * Enum class to represent a process modes to recognise a graph
- * @author github.com/Graidaris
+ * @author Władysław Jakołcewicz
  */
 enum class ProcessMode{
     GRID_BG, //grid background

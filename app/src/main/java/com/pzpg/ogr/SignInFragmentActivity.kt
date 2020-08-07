@@ -31,15 +31,19 @@ import kotlinx.coroutines.launch
 
 /**
  * Fragment activity responsible for the authorization
+ *
+ * @property[TAG] used in logs
+ * @property[mGoogleSignInClient] build a GoogleSignInClient with the options specified by gso.
+ * @property[myAccount] google account of the user
+ * @property[requestManager] see in [RequestServer]
  */
 class SignInFragmentActivity : FragmentActivity(){
 
     private val TAG = "SignInFragmentActivity"
-
-    lateinit var mGoogleSignInClient: GoogleSignInClient
+    private lateinit var mGoogleSignInClient: GoogleSignInClient
     private var myAccount: GoogleSignInAccount? = null
+    private lateinit var requestManager: RequestManager
 
-    lateinit var requestManager: RequestManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

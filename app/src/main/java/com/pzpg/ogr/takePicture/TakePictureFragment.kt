@@ -33,6 +33,12 @@ import java.io.OutputStream
 
 /**
  * Fragment responsible for photographing, select an image from the gallery, editing photos.
+ *
+ * @property[TAG] used in logs
+ * @property[viewModel] view model of this class
+ * @property[imageView] view where the image is sets
+ * @property[currentPhotoPath] path of the created image file
+ * @property[photoUri] uri of the created image
  */
 class TakePictureFragment : Fragment() {
 

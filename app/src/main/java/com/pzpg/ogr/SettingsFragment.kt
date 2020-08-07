@@ -28,12 +28,16 @@ import java.io.File
 
 /**
  * Fragment responsible for some preferences
+ *
+ * @property[TAG] used in logs
+ * @property[account] user google account
+ * @property[picDir] path to app local dictionary contains pictures
+ * @property[graphDir] path to app local dictionary contains graphs
  */
 class SettingsFragment : Fragment(), View.OnClickListener {
 
     private val TAG = "SettingsFragment"
     private var account: GoogleSignInAccount? = null
-    private lateinit var requestManager: RequestManager
     private var picDir: File? = null
     private var graphDir: File? = null
 

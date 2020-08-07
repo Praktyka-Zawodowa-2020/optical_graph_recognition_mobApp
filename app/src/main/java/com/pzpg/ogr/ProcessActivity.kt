@@ -32,6 +32,13 @@ import java.io.File
 
 /**
  * Activity responsible for processing an image and sharing result of the processing.
+ *
+ * @property[photoPath] path to the image to be processed
+ * @property[account] user google account
+ * @property[requestManager] see in [RequestManager]
+ * @property[uriGraphSix] uri of the Graph6 file that was downloaded
+ * @property[uriGraphMl] uri of the GraphMl file that was downloaded
+ * @property[guid] Universally unique identifier of the processed image
  */
 class ProcessActivity : AppCompatActivity() {
     private var photoPath: String? = null
