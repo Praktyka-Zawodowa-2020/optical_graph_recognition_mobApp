@@ -17,4 +17,5 @@ For optical recognition of graphs, the application uses the API from the [server
 * [Fuel](https://github.com/kittinunf/Fuel) - the easiest HTTP networking library for Kotlin/Android.
 * [Glide](https://github.com/bumptech/glide) - is a fast and efficient open source media management and image loading framework for Android that wraps media decoding, memory and disk caching, and resource pooling into a simple and easy to use interface.
 
-### [Documentation](docs/index.md)
+## Documentation
+Documentation of the project you can finde here [Click](docs/index.md)
